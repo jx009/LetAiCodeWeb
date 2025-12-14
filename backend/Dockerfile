@@ -1,7 +1,10 @@
 # Stage 1: Build
-FROM node:18-alpine AS builder
+FROM node:18-slim AS builder
 
 WORKDIR /app
+
+# Install OpenSSL for Prisma
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 # Copy package files
 COPY package*.json ./
@@ -20,28 +23,27 @@ RUN npx prisma generate
 RUN npm run build
 
 # Stage 2: Production
-FROM node:18-alpine
+FROM node:18-slim
 
 WORKDIR /app
 
-# Install dumb-init and libraries needed for Prisma
-RUN apk add --no-cache dumb-init libc6-compat openssl
+# Install OpenSSL for Prisma
+RUN apt-get update -y && apt-get install -y openssl dumb-init && rm -rf /var/lib/apt/lists/*
 
 # Copy package files and install production dependencies
 COPY package*.json ./
 RUN npm ci --only=production
 
-# Copy Prisma files and generated client from builder
+# Copy Prisma files
 COPY prisma ./prisma/
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
+RUN npx prisma generate
 
 # Copy built application
 COPY --from=builder /app/dist ./dist
 
 # Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001 && \
+RUN groupadd -g 1001 nodejs && \
+    useradd -u 1001 -g nodejs nodejs && \
     chown -R nodejs:nodejs /app
 
 USER nodejs

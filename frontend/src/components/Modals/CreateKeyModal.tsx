@@ -29,11 +29,11 @@ const CreateKeyModal: React.FC<CreateKeyModalProps> = ({ open, onCancel, onSucce
       setLoading(true);
       const response = await createApiKey(values.label);
 
-      if (response.data.success && response.data.data) {
-        setCreatedKey(response.data.data);
+      if (response.success && response.data) {
+        setCreatedKey(response.data);
         message.success('API Key 创建成功！');
       } else {
-        throw new Error(response.data.message || '创建失败');
+        throw new Error(response.message || '创建失败');
       }
     } catch (error: any) {
       message.error(error.response?.data?.message || error.message || '创建 API Key 失败');

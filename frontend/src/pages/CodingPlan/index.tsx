@@ -3,7 +3,7 @@
  * 完全复刻 MiniMAXI Coding Plan 页面设计
  */
 import React, { useState, useEffect } from 'react';
-import { Card, Button, message, Spin, Modal } from 'antd';
+import { Card, Button, message, Spin } from 'antd';
 import { CheckOutlined } from '@ant-design/icons';
 import { getPackagePlans, createOrder } from '@/api/recharge';
 import type { PackagePlan } from '@/types';
@@ -25,8 +25,8 @@ const CodingPlan: React.FC = () => {
     try {
       setLoading(true);
       const response = await getPackagePlans();
-      if (response.data.success) {
-        setPackages(response.data.data);
+      if (response.success) {
+        setPackages(response.data || []);
       }
     } catch (error: any) {
       message.error(error.message || '获取套餐列表失败');
@@ -44,11 +44,11 @@ const CodingPlan: React.FC = () => {
 
       // 1. 创建订单
       const orderResponse = await createOrder(packageId);
-      if (!orderResponse.data.success) {
-        throw new Error(orderResponse.data.message || '创建订单失败');
+      if (!orderResponse.success || !orderResponse.data) {
+        throw new Error(orderResponse.message || '创建订单失败');
       }
 
-      const order = orderResponse.data.data;
+      const order = orderResponse.data;
 
       // 2. 显示订单创建成功消息
       message.success(`订单创建成功！订单号：${order.orderNo}，请前往支付页面完成支付。`);
@@ -116,23 +116,15 @@ interface PackageCardProps {
 }
 
 const PackageCard: React.FC<PackageCardProps> = ({ package: pkg, purchasing, onPurchase }) => {
-  // 解析 features（如果是 JSON 字符串）
-  let features: string[] = [];
-  if (pkg.features) {
-    try {
-      const parsed = typeof pkg.features === 'string' ? JSON.parse(pkg.features) : pkg.features;
-      features = parsed.features || [];
-    } catch (error) {
-      features = [];
-    }
-  }
+  // Note: features field doesn't exist in database schema
+  const features: string[] = [];
 
   return (
     <Card className="package-card" bordered={false}>
       {/* 套餐名称 */}
       <div className="package-header">
         <h2 className="package-name">{pkg.name}</h2>
-        {pkg.description && <p className="package-description">{pkg.description}</p>}
+        {pkg.desc && <p className="package-description">{pkg.desc}</p>}
       </div>
 
       {/* 价格 */}
@@ -144,7 +136,7 @@ const PackageCard: React.FC<PackageCardProps> = ({ package: pkg, purchasing, onP
 
       {/* 积分数量 */}
       <div className="package-credits">
-        <span className="credits-amount">{pkg.credits.toLocaleString()}</span>
+        <span className="credits-amount">{pkg.creditAmount.toLocaleString()}</span>
         <span className="credits-unit"> 积分</span>
       </div>
 

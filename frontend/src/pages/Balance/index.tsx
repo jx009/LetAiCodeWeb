@@ -63,8 +63,8 @@ const Balance: React.FC = () => {
   const fetchBalance = async () => {
     try {
       const response = await getBalance();
-      if (response.data.success && response.data.data) {
-        setBalance(response.data.data.balance);
+      if (response.success && response.data) {
+        setBalance(response.data.balance);
       }
     } catch (error: any) {
       message.error(error.response?.data?.message || '获取余额失败');
@@ -80,8 +80,8 @@ const Balance: React.FC = () => {
       }
 
       const response = await getCreditStatistics(params);
-      if (response.data.success && response.data.data) {
-        setStatistics(response.data.data);
+      if (response.success && response.data) {
+        setStatistics(response.data);
       }
     } catch (error) {
       // 静默失败
@@ -105,8 +105,8 @@ const Balance: React.FC = () => {
 
       const response = await getTransactions(params);
 
-      if (response.data.success && response.data.data) {
-        const { records, pagination: pag } = response.data.data;
+      if (response.success && response.data) {
+        const { records, pagination: pag } = response.data;
         setTransactions(records);
         setPagination({
           current: pag.page,

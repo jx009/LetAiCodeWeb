@@ -14,13 +14,11 @@ import {
   Card,
   Tooltip,
   Empty,
-  Spin,
 } from 'antd';
 import {
   PlusOutlined,
   CopyOutlined,
   DeleteOutlined,
-  EyeOutlined,
   PoweroffOutlined,
   CheckOutlined,
 } from '@ant-design/icons';
@@ -50,8 +48,8 @@ const ApiKeys: React.FC = () => {
     try {
       setLoading(true);
       const response = await getApiKeys();
-      if (response.data.success) {
-        setKeys(response.data.data || []);
+      if (response.success) {
+        setKeys(response.data || []);
       }
     } catch (error: any) {
       message.error(error.response?.data?.message || '获取 API Keys 失败');
@@ -83,7 +81,7 @@ const ApiKeys: React.FC = () => {
   const handleDelete = async (keyId: string) => {
     try {
       const response = await deleteApiKey(keyId);
-      if (response.data.success) {
+      if (response.success) {
         message.success('API Key 已删除');
         fetchKeys();
       }
@@ -100,7 +98,7 @@ const ApiKeys: React.FC = () => {
 
     try {
       const response = await updateApiKeyStatus(key.id, newStatus);
-      if (response.data.success) {
+      if (response.success) {
         message.success(newStatus === KeyStatus.ACTIVE ? 'Key 已启用' : 'Key 已禁用');
         fetchKeys();
       }

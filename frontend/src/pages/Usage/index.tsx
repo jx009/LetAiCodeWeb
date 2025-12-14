@@ -17,7 +17,7 @@ import {
   message,
   Tag,
 } from 'antd';
-import { SyncOutlined, DownloadOutlined } from '@ant-design/icons';
+import { SyncOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs, { Dayjs } from 'dayjs';
 import { getUsageRecords, getApiKeys, syncUsageRecords } from '@/api';
@@ -76,8 +76,8 @@ const Usage: React.FC = () => {
 
       const response = await getUsageRecords(params);
 
-      if (response.data.success && response.data.data) {
-        const { records, pagination: pag, summary: sum } = response.data.data;
+      if (response.success && response.data) {
+        const { records, pagination: pag, summary: sum } = response.data;
         setRecords(records);
         setPagination({
           current: pag.page,
@@ -96,8 +96,8 @@ const Usage: React.FC = () => {
   const fetchKeys = async () => {
     try {
       const response = await getApiKeys();
-      if (response.data.success && response.data.data) {
-        setKeys(response.data.data);
+      if (response.success && response.data) {
+        setKeys(response.data);
       }
     } catch (error) {
       // 静默失败
@@ -111,7 +111,7 @@ const Usage: React.FC = () => {
     try {
       setSyncing(true);
       const response = await syncUsageRecords();
-      if (response.data.success) {
+      if (response.success) {
         message.success('同步成功');
         fetchRecords();
       }

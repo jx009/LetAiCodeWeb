@@ -33,8 +33,8 @@ const TopHeader = () => {
 
     try {
       const response = await getBalance();
-      if (response.data.success && response.data.data) {
-        updateBalance(response.data.data.balance);
+      if (response.success && response.data) {
+        updateBalance(response.data.balance);
       }
     } catch (error) {
       // 静默失败，不影响用户体验

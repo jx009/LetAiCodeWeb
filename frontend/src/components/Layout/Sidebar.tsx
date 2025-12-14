@@ -1,4 +1,4 @@
-import { Layout, Menu, Divider } from 'antd';
+import { Layout, Menu } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   AppstoreOutlined,

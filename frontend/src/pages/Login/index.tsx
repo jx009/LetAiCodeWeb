@@ -43,7 +43,7 @@ const Login: React.FC = () => {
       }
 
       setSendingCode(true);
-      await authAPI.sendCode(email);
+      await authAPI.sendEmailCode(email);
       message.success('验证码已发送，请查收邮件');
 
       // 开始倒计时
@@ -78,7 +78,9 @@ const Login: React.FC = () => {
       const response = await authAPI.login(values.email, values.code);
 
       // 保存登录状态
-      setAuth(response.data.user, response.data.accessToken);
+      if (response.data) {
+        setAuth(response.data.user, response.data.token);
+      }
       message.success('登录成功');
 
       // 跳转到首页

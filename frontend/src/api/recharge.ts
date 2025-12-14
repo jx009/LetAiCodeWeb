@@ -6,9 +6,6 @@ import type {
   ApiResponse,
   PackagePlan,
   PaymentOrder,
-  CreditTransaction,
-  PaginationResponse,
-  TransactionType,
 } from '@/types';
 
 // 获取套餐列表
@@ -76,17 +73,4 @@ export const cancelOrder = (orderId: string) => {
   return http.post<ApiResponse<any>>(`/orders/${orderId}/cancel`);
 };
 
-// 获取交易记录
-interface TransactionQueryParams {
-  type?: TransactionType;
-  startDate?: string;
-  endDate?: string;
-  page?: number;
-  pageSize?: number;
-}
-
-export const getTransactions = (params: TransactionQueryParams) => {
-  return http.get<
-    ApiResponse<PaginationResponse<CreditTransaction> & { summary: { currentBalance: number } }>
-  >('/transactions', { params });
-};
+// Note: getTransactions is exported from usage.ts to avoid duplicate exports

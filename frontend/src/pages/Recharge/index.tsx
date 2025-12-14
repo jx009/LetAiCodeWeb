@@ -10,8 +10,6 @@ import {
   Typography,
   Space,
   Tag,
-  Modal,
-  Form,
 } from 'antd';
 import { WalletOutlined, AlipayCircleOutlined, WechatOutlined } from '@ant-design/icons';
 import { getPackagePlans, createOrder, requestPayment, getPaymentInfo } from '@/api/recharge';
@@ -30,8 +28,8 @@ const Recharge = () => {
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
   const [selectedPayMethod, setSelectedPayMethod] = useState<string>('');
-  const [paymentModalVisible, setPaymentModalVisible] = useState(false);
-  const [paymentFormHtml, setPaymentFormHtml] = useState<string>('');
+  // const [paymentModalVisible, setPaymentModalVisible] = useState(false);
+  // const [paymentFormHtml, setPaymentFormHtml] = useState<string>('');
 
   // 加载套餐列表
   useEffect(() => {
@@ -43,9 +41,9 @@ const Recharge = () => {
     try {
       setLoading(true);
       const res = await getPackagePlans();
-      if (res.data.success && res.data.data) {
+      if (res.success && res.data) {
         // 按 sortOrder 排序
-        const sortedPackages = [...res.data.data].sort((a, b) => a.sortOrder - b.sortOrder);
+        const sortedPackages = [...res.data].sort((a, b) => a.sortOrder - b.sortOrder);
         setPackages(sortedPackages.filter((p) => p.active));
       }
     } catch (error: any) {
@@ -58,11 +56,11 @@ const Recharge = () => {
   const loadPaymentInfo = async () => {
     try {
       const res = await getPaymentInfo();
-      if (res.data.success && res.data.data) {
-        setPaymentInfo(res.data.data);
+      if (res.success && res.data) {
+        setPaymentInfo(res.data);
         // 默认选择第一个支付方式
-        if (res.data.data.payMethods.length > 0) {
-          setSelectedPayMethod(res.data.data.payMethods[0].type);
+        if (res.data.payMethods.length > 0) {
+          setSelectedPayMethod(res.data.payMethods[0].type);
         }
       }
     } catch (error: any) {
@@ -91,11 +89,11 @@ const Recharge = () => {
 
       // 1. 创建订单
       const orderRes = await createOrder(selectedPackage);
-      if (!orderRes.data.success || !orderRes.data.data) {
-        throw new Error(orderRes.data.message || '创建订单失败');
+      if (!orderRes.success || !orderRes.data) {
+        throw new Error(orderRes.message || '创建订单失败');
       }
 
-      const order = orderRes.data.data;
+      const order = orderRes.data;
 
       // 2. 发起支付请求
       const payRes = await requestPayment({
@@ -103,11 +101,11 @@ const Recharge = () => {
         paymentMethod: selectedPayMethod,
       });
 
-      if (!payRes.data.success || !payRes.data.data) {
-        throw new Error(payRes.data.message || '创建支付请求失败');
+      if (!payRes.success || !payRes.data) {
+        throw new Error(payRes.message || '创建支付请求失败');
       }
 
-      const paymentData = payRes.data.data;
+      const paymentData = payRes.data;
 
       // 3. 构建支付表单并自动提交
       const form = document.createElement('form');

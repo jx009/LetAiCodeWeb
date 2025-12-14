@@ -22,7 +22,7 @@ import {
 } from '@ant-design/icons';
 import { getAllOrders, getOrderStats } from '@/api/admin';
 import type { OrderQueryParams } from '@/api/admin';
-import type { PaymentOrder, PaymentStatus } from '@/types';
+import type { PaymentStatus } from '@/types';
 
 const { Title } = Typography;
 const { Search } = Input;
@@ -55,11 +55,11 @@ const AdminOrders = () => {
         ...filters,
       });
 
-      if (res.data.success && res.data.data) {
-        setOrders(res.data.data.orders);
+      if (res.success && res.data) {
+        setOrders(res.data.orders);
         setPagination((prev) => ({
           ...prev,
-          total: res.data.data!.pagination.total,
+          total: res.data!.pagination.total,
         }));
       }
     } catch (error: any) {
@@ -72,8 +72,8 @@ const AdminOrders = () => {
   const loadStats = async () => {
     try {
       const res = await getOrderStats();
-      if (res.data.success && res.data.data) {
-        setStats(res.data.data);
+      if (res.success && res.data) {
+        setStats(res.data);
       }
     } catch (error: any) {
       console.error('加载统计失败:', error);

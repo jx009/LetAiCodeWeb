@@ -8,11 +8,8 @@ import {
   message,
   Typography,
   Tabs,
-  Switch,
   Select,
-  Tag,
   Alert,
-  Divider,
 } from 'antd';
 import {
   SettingOutlined,
@@ -26,13 +23,10 @@ import {
   getPaymentConfig,
   updatePaymentConfig,
   validatePaymentConfig,
-  getOptions,
-  updateOption,
 } from '@/api/admin';
 import type { PaymentConfig } from '@/api/admin';
 
 const { Title, Text, Paragraph } = Typography;
-const { TextArea } = Input;
 
 /**
  * 系统配置页面（超级管理员）
@@ -40,7 +34,8 @@ const { TextArea } = Input;
 const AdminSettings = () => {
   const [loading, setLoading] = useState(false);
   const [paymentForm] = Form.useForm();
-  const [paymentConfig, setPaymentConfig] = useState<PaymentConfig | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_paymentConfig, setPaymentConfig] = useState<PaymentConfig | null>(null);
   const [paymentValid, setPaymentValid] = useState<boolean | null>(null);
   const [payMethods, setPayMethods] = useState<
     Array<{ name: string; type: string; color: string }>
@@ -54,8 +49,8 @@ const AdminSettings = () => {
     try {
       setLoading(true);
       const res = await getPaymentConfig();
-      if (res.data.success && res.data.data) {
-        const config = res.data.data;
+      if (res.success && res.data) {
+        const config = res.data;
         setPaymentConfig(config);
         setPayMethods(config.payMethods || []);
         paymentForm.setFieldsValue({
@@ -75,12 +70,12 @@ const AdminSettings = () => {
   const handleValidatePayment = async () => {
     try {
       const res = await validatePaymentConfig();
-      if (res.data.success && res.data.data) {
-        setPaymentValid(res.data.data.valid);
-        if (res.data.data.valid) {
+      if (res.success && res.data) {
+        setPaymentValid(res.data.valid);
+        if (res.data.valid) {
           message.success('支付配置验证通过');
         } else {
-          message.error(res.data.data.message || '支付配置验证失败');
+          message.error(res.data.message || '支付配置验证失败');
         }
       }
     } catch (error: any) {

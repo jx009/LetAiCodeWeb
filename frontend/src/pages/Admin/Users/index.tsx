@@ -38,7 +38,7 @@ import {
 import type { UserQueryParams, UserListResponse, UserStatsResponse } from '@/api/admin';
 import type { User, UserRole } from '@/types';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { Search } = Input;
 
 /**
@@ -72,11 +72,11 @@ const AdminUsers = () => {
         ...filters,
       });
 
-      if (res.data.success && res.data.data) {
-        setUsers(res.data.data.users);
+      if (res.success && res.data) {
+        setUsers(res.data.users);
         setPagination((prev) => ({
           ...prev,
-          total: res.data.data!.pagination.total,
+          total: res.data!.pagination.total,
         }));
       }
     } catch (error: any) {
@@ -89,8 +89,8 @@ const AdminUsers = () => {
   const loadStats = async () => {
     try {
       const res = await getUserStats();
-      if (res.data.success && res.data.data) {
-        setStats(res.data.data);
+      if (res.success && res.data) {
+        setStats(res.data);
       }
     } catch (error: any) {
       console.error('加载统计失败:', error);

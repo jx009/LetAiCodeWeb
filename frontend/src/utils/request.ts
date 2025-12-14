@@ -17,10 +17,17 @@ const request: AxiosInstance = axios.create({
 // 请求拦截器
 request.interceptors.request.use(
   (config) => {
-    // 添加 token
-    const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // 添加 token（从 zustand persist 存储中读取）
+    const authData = localStorage.getItem(STORAGE_KEYS.TOKEN);
+    if (authData) {
+      try {
+        const { token } = JSON.parse(authData);
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      } catch (e) {
+        console.error('Failed to parse auth data:', e);
+      }
     }
     return config;
   },

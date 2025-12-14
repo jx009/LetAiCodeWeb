@@ -80,7 +80,7 @@ services:
     container_name: letaicode-frontend
     restart: always
     ports:
-      - "80:80"
+      - "4001:80"
     depends_on:
       - backend
     networks:

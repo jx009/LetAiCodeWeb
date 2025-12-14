@@ -10,7 +10,11 @@
       "Bash(npm run dev:*)",
       "Bash(npx prisma generate:*)",
       "Bash(npx ts-node:*)",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "Bash(npm run build:*)",
+      "Bash(find:*)",
+      "Bash(npm install:*)",
+      "Bash(tee:*)"
     ],
     "deny": [],
     "ask": []

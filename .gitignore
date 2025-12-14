@@ -1,0 +1,28 @@
+# Node
+node_modules
+npm-debug.log*
+.pnpm-debug.log*
+
+# Build outputs
+dist
+.next
+out
+coverage
+apps/server/data
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea
+.vscode
+
+# Logs
+logs
+*.log
+.eslintcache

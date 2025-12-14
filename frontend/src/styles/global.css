@@ -1,0 +1,241 @@
+/**
+ * 全局样式
+ * 复刻 MiniMAXI 平台的全局样式
+ */
+
+/* 引入 CSS 变量 */
+@import './variables.css';
+
+/* ========== Reset 样式 ========== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  line-height: var(--line-height);
+  color: var(--text-primary);
+  background-color: var(--bg-layout);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========== 滚动条样式 ========== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-gray);
+  border-radius: var(--border-radius);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: var(--border-radius);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* ========== 链接样式 ========== */
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+a:hover {
+  color: var(--primary-hover);
+}
+
+a:active {
+  color: var(--primary-active);
+}
+
+/* ========== 标题样式 ========== */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--text-heading);
+  font-weight: 600;
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  font-size: var(--font-size-heading-1);
+  line-height: 1.2105263157894737;
+}
+
+h2 {
+  font-size: var(--font-size-heading-2);
+  line-height: 1.2666666666666666;
+}
+
+h3 {
+  font-size: var(--font-size-heading-3);
+  line-height: 1.3333333333333333;
+}
+
+h4 {
+  font-size: var(--font-size-heading-4);
+  line-height: 1.4;
+}
+
+h5 {
+  font-size: var(--font-size-heading-5);
+  line-height: 1.5;
+}
+
+/* ========== 段落样式 ========== */
+p {
+  margin: 0;
+  padding: 0;
+}
+
+/* ========== 列表样式 ========== */
+ul,
+ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* ========== 图片样式 ========== */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ========== 按钮样式重置 ========== */
+button {
+  border: none;
+  outline: none;
+  cursor: pointer;
+  background: transparent;
+  font-family: inherit;
+}
+
+/* ========== 输入框样式重置 ========== */
+input,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  outline: none;
+}
+
+/* ========== 工具类 ========== */
+.text-primary {
+  color: var(--text-primary) !important;
+}
+
+.text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.text-tertiary {
+  color: var(--text-tertiary) !important;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* ========== 页面容器 ========== */
+.page-container {
+  padding: var(--spacing-lg);
+  background: var(--bg-layout);
+  min-height: 100%;
+}
+
+.content-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ========== 卡片样式 ========== */
+.custom-card {
+  background: var(--bg-white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* ========== 响应式 ========== */
+@media (max-width: 768px) {
+  .page-container {
+    padding: var(--spacing-md);
+  }
+
+  .custom-card {
+    padding: var(--spacing-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .page-container {
+    padding: var(--spacing-sm);
+  }
+
+  .custom-card {
+    padding: var(--spacing-sm);
+  }
+}

@@ -1,0 +1,32 @@
+/**
+ * 主布局样式
+ * 完全复刻 MiniMAXI 平台的布局样式
+ */
+
+.app-layout {
+  min-height: 100vh;
+}
+
+.app-layout-content {
+  margin: 24px;
+  padding: 24px;
+  background: var(--bg-white);
+  border-radius: var(--border-radius-lg);
+  min-height: calc(100vh - 64px - 48px);
+  box-shadow: var(--shadow-1);
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .app-layout-content {
+    margin: 16px;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-layout-content {
+    margin: 12px;
+    padding: 12px;
+  }
+}

@@ -1,0 +1,1 @@
+self.__SSG_MANIFEST=new Set(["\u002Fprotocol\u002Fauto-renewal","\u002Fprotocol\u002Fprivacy-policy","\u002Fprotocol\u002Fprivacy-policy-en","\u002Fprotocol\u002Fuser-agreement","\u002Fprotocol\u002Fuser-agreement-en"]);self.__SSG_MANIFEST_CB&&self.__SSG_MANIFEST_CB()

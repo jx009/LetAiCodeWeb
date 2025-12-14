@@ -1,0 +1,201 @@
+// Prisma Schema for LetAiCode
+// 完整的数据库设计
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ========== 用户表 ==========
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  role      UserRole @default(USER) // 用户角色
+  status    Int      @default(1) // 状态（1=启用 0=禁用）
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关联
+  apiKeys            ApiKey[]
+  creditTransactions CreditTransaction[]
+  sessions           Session[]
+  orders             PaymentOrder[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  USER  // 普通用户
+  ADMIN // 管理员
+  ROOT  // 超级管理员
+}
+
+// ========== 邮箱验证码表 ==========
+model EmailCode {
+  id        String   @id @default(uuid())
+  email     String
+  code      String   // 6位验证码
+  expiresAt DateTime // 过期时间（5分钟）
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+  @@map("email_codes")
+}
+
+// ========== API Key 表 ==========
+model ApiKey {
+  id           String    @id @default(uuid())
+  userId       String
+  label        String    // Key 名称/备注
+  remoteKeyId  String?   // new-api 中的 Key ID
+  maskedValue  String    // 脱敏后的 Key 值（sk-****...后4位）
+  fullValue    String    // 完整 Key 值（加密存储）
+  status       KeyStatus @default(ACTIVE)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  lastUsedAt   DateTime?
+
+  // 关联
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  usageRecords UsageRecord[]
+
+  @@index([userId])
+  @@index([remoteKeyId])
+  @@map("api_keys")
+}
+
+enum KeyStatus {
+  ACTIVE
+  DISABLED
+  DELETED
+}
+
+// ========== 使用记录表 ==========
+model UsageRecord {
+  id               String   @id @default(uuid())
+  apiKeyId         String
+  timestamp        DateTime @default(now())
+  model            String   // 模型名称
+  promptTokens     Int      // 提示 tokens
+  completionTokens Int      // 完成 tokens
+  totalTokens      Int      // 总 tokens
+  creditCost       Int      // 积分消耗
+  rawMeta          String?  // 原始元数据（JSON 字符串）
+
+  // 关联
+  apiKey ApiKey @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+
+  @@index([apiKeyId, timestamp])
+  @@map("usage_records")
+}
+
+// ========== 积分交易表 ==========
+model CreditTransaction {
+  id        String          @id @default(uuid())
+  userId    String
+  type      TransactionType
+  amount    Int             // 积分数量（正数为充值/赠送，负数为扣除）
+  balance   Int             // 交易后余额
+  ref       String?         // 关联引用（订单号、使用记录ID等）
+  desc      String?         // 描述
+  createdAt DateTime        @default(now())
+
+  // 关联
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("credit_transactions")
+}
+
+enum TransactionType {
+  RECHARGE     // 充值
+  BONUS        // 赠送
+  DEDUCT       // 扣除
+  REFUND       // 退款
+  ADMIN_ADJUST // 管理员调整
+}
+
+// ========== 套餐计划表 ==========
+model PackagePlan {
+  id           String   @id @default(uuid())
+  name         String   // 套餐名称
+  price        String   // 价格（元）
+  creditAmount Int      // 基础积分
+  bonusCredit  Int      @default(0) // 赠送积分
+  desc         String?  // 描述
+  sortOrder    Int      @default(0) // 排序
+  active       Boolean  @default(true) // 是否激活
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // 关联
+  orders PaymentOrder[]
+
+  @@map("package_plans")
+}
+
+// ========== 支付订单表 ==========
+model PaymentOrder {
+  id            String        @id @default(uuid())
+  orderNo       String        @unique // 订单号
+  userId        String
+  packageId     String
+  amount        String        // 支付金额
+  creditAmount  Int           // 购买积分
+  bonusCredit   Int           @default(0) // 赠送积分
+  status        PaymentStatus @default(PENDING)
+  paymentMethod String?       // 支付方式（wechat/alipay）
+  transactionId String?       // 第三方交易号
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  expiresAt     DateTime      // 订单过期时间
+
+  // 关联
+  user    User        @relation(fields: [userId], references: [id])
+  package PackagePlan @relation(fields: [packageId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([orderNo])
+  @@map("payment_orders")
+}
+
+enum PaymentStatus {
+  PENDING   // 待支付
+  PAID      // 已支付
+  CANCELLED // 已取消
+  EXPIRED   // 已过期
+  REFUNDED  // 已退款
+}
+
+// ========== 会话表 ==========
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  refreshToken String   @unique
+  expiresAt    DateTime // 14天有效期
+  createdAt    DateTime @default(now())
+
+  // 关联
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([refreshToken])
+  @@map("sessions")
+}
+
+// ========== 配置表（系统配置） ==========
+model Option {
+  key       String   @id // 配置键（主键）
+  value     String   // 配置值（支持 JSON）
+  desc      String?  // 配置描述
+  updatedAt DateTime @updatedAt
+
+  @@map("options")
+}

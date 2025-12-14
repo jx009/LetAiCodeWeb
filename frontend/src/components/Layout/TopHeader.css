@@ -1,0 +1,103 @@
+/**
+ * 顶部导航栏样式
+ * 完全复刻 MiniMAXI 平台的顶部导航样式
+ */
+
+.top-header {
+  background: var(--bg-white);
+  padding: 0 24px;
+  height: 64px;
+  line-height: 64px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow-1);
+  position: sticky;
+  top: 0;
+  z-index: 99;
+}
+
+.top-header-content {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+/* 余额显示 */
+.balance-display {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  background: var(--primary-bg);
+  border: 1px solid var(--primary-border);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.balance-display:hover {
+  background: var(--primary-bg-hover);
+  border-color: var(--primary-border-hover);
+}
+
+/* 图标按钮 */
+.header-icon-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.header-icon-btn:hover {
+  background: var(--bg-gray);
+}
+
+/* 用户信息 */
+.user-info {
+  display: flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.user-info:hover {
+  background: var(--bg-gray);
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .top-header {
+    padding: 0 16px;
+  }
+
+  .balance-display span {
+    display: none;
+  }
+
+  .user-info span {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .top-header {
+    padding: 0 12px;
+  }
+
+  .header-right {
+    gap: 12px;
+  }
+}

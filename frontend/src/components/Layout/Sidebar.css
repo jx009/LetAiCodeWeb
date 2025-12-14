@@ -1,0 +1,101 @@
+/**
+ * 侧边栏样式
+ * 完全复刻 MiniMAXI 平台的侧边导航样式
+ */
+
+.sidebar-logo {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: all 0.3s;
+}
+
+.logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+}
+
+.logo-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-left: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* 菜单项样式调整（完全复刻 MiniMAXI） */
+.ant-menu-inline .ant-menu-item {
+  height: 40px;
+  line-height: 40px;
+  margin: 4px 8px;
+  border-radius: 4px;
+}
+
+.ant-menu-inline .ant-menu-item:hover {
+  background-color: rgba(36, 190, 88, 0.08);
+}
+
+.ant-menu-inline .ant-menu-item-selected {
+  background-color: #f0fff2;
+  color: #24be58;
+}
+
+.ant-menu-inline .ant-menu-item-selected::after {
+  border-right: none;
+}
+
+/* 图标颜色 */
+.ant-menu-inline .ant-menu-item .anticon {
+  font-size: 16px;
+  transition: color 0.3s;
+}
+
+.ant-menu-inline .ant-menu-item:hover .anticon {
+  color: #24be58;
+}
+
+.ant-menu-inline .ant-menu-item-selected .anticon {
+  color: #24be58;
+}
+
+/* 折叠状态下的样式 */
+.ant-layout-sider-collapsed .sidebar-logo {
+  padding: 16px 8px;
+}
+
+.ant-layout-sider-collapsed .logo-text {
+  display: none;
+}
+
+/* 滚动条样式 */
+.ant-layout-sider::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ant-layout-sider::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ant-layout-sider::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.ant-layout-sider::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .ant-layout-sider {
+    position: fixed !important;
+    z-index: 999;
+    box-shadow: var(--shadow-2);
+  }
+}

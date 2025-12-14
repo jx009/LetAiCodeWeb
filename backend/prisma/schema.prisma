@@ -55,7 +55,7 @@ model ApiKey {
   label        String    // Key 名称/备注
   remoteKeyId  String?   // new-api 中的 Key ID
   maskedValue  String    // 脱敏后的 Key 值（sk-****...后4位）
-  fullValue    String    @db.VarChar(65535) // 完整 Key 值（加密存储）
+  fullValue    String    @db.VarChar(16383) // 完整 Key 值（加密存储）
   status       KeyStatus @default(ACTIVE)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
@@ -86,7 +86,7 @@ model UsageRecord {
   completionTokens Int      // 完成 tokens
   totalTokens      Int      // 总 tokens
   creditCost       Int      // 积分消耗
-  rawMeta          String?  @db.VarChar(65535) // 原始元数据（JSON 字符串）
+  rawMeta          String?  @db.VarChar(16383) // 原始元数据（JSON 字符串）
 
   // 关联
   apiKey ApiKey @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
@@ -151,7 +151,7 @@ model PaymentOrder {
   bonusCredit   Int           @default(0) // 赠送积分
   status        PaymentStatus @default(PENDING)
   paymentMethod String?       // 支付方式（wechat/alipay）
-  transactionId String?       @db.VarChar(65535) // 第三方交易号
+  transactionId String?       @db.VarChar(16383) // 第三方交易号
   paidAt        DateTime?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -178,7 +178,7 @@ enum PaymentStatus {
 model Session {
   id           String   @id @default(uuid())
   userId       String
-  refreshToken String   @unique @db.VarChar(65535)
+  refreshToken String   @unique @db.VarChar(16383)
   expiresAt    DateTime // 14天有效期
   createdAt    DateTime @default(now())
 
@@ -193,7 +193,7 @@ model Session {
 // ========== 配置表（系统配置） ==========
 model Option {
   key       String   @id // 配置键（主键）
-  value     String   @db.VarChar(65535) // 配置值（支持 JSON）
+  value     String   @db.VarChar(16383) // 配置值（支持 JSON）
   desc      String?  // 配置描述
   updatedAt DateTime @updatedAt
 

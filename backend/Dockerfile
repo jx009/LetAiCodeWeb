@@ -24,16 +24,17 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Install dumb-init and OpenSSL 1.1 compatibility for Prisma
-RUN apk add --no-cache dumb-init openssl1.1-compat
+# Install dumb-init and libraries needed for Prisma
+RUN apk add --no-cache dumb-init libc6-compat openssl
 
 # Copy package files and install production dependencies
 COPY package*.json ./
 RUN npm ci --only=production
 
-# Copy Prisma files
+# Copy Prisma files and generated client from builder
 COPY prisma ./prisma/
-RUN npx prisma generate
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 
 # Copy built application
 COPY --from=builder /app/dist ./dist

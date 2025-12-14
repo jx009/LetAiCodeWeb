@@ -178,7 +178,7 @@ enum PaymentStatus {
 model Session {
   id           String   @id @default(uuid())
   userId       String
-  refreshToken String   @unique @db.VarChar(10000)
+  refreshToken String   @unique @db.VarChar(768)
   expiresAt    DateTime // 14天有效期
   createdAt    DateTime @default(now())
 

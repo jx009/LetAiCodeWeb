@@ -178,7 +178,7 @@ enum PaymentStatus {
 model Session {
   id           String   @id @default(uuid())
   userId       String
-  refreshToken String   @unique
+  refreshToken String   @unique @db.Text
   expiresAt    DateTime // 14天有效期
   createdAt    DateTime @default(now())
 
@@ -186,7 +186,6 @@ model Session {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([refreshToken])
   @@map("sessions")
 }
 

@@ -21,7 +21,9 @@ request.interceptors.request.use(
     const authData = localStorage.getItem(STORAGE_KEYS.TOKEN);
     if (authData) {
       try {
-        const { token } = JSON.parse(authData);
+        // Zustand persist 存储格式：{ state: { token, user, ... }, version: 0 }
+        const parsed = JSON.parse(authData);
+        const token = parsed.state?.token || parsed.token; // 兼容两种格式
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }

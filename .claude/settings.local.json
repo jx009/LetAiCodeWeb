@@ -14,7 +14,12 @@
       "Bash(npm run build:*)",
       "Bash(find:*)",
       "Bash(npm install:*)",
-      "Bash(tee:*)"
+      "Bash(tee:*)",
+      "Bash(wc:*)",
+      "Bash(cat:*)",
+      "Bash(pnpm list:*)",
+      "WebSearch",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []

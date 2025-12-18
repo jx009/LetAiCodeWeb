@@ -25,13 +25,16 @@ class KeysService {
     const { userId, label } = params;
 
     // 1. 调用 new-api 创建 Token
-    const { key: fullKey, id: remoteKeyId } = await newApiService.createToken(userId, label);
+    const { key: rawKey, id: remoteKeyId } = await newApiService.createToken(userId, label);
 
-    // 2. 加密完整 Key
+    // 2. 确保 Key 以 sk- 开头
+    const fullKey = rawKey.startsWith('sk-') ? rawKey : `sk-${rawKey}`;
+
+    // 3. 加密完整 Key
     const encryptedKey = encrypt(fullKey);
 
-    // 3. 生成脱敏值（sk-****...后4位）
-    const maskedValue = `${fullKey.substring(0, 3)}****...${fullKey.slice(-4)}`;
+    // 4. 生成脱敏值（sk-****...后4位）
+    const maskedValue = `sk-****...${fullKey.slice(-4)}`;
 
     // 4. 存储到数据库
     const apiKey = await prisma.apiKey.create({

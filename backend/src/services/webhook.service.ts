@@ -133,7 +133,7 @@ class WebhookService {
     const { remoteKeyId, model, totalTokens, creditCost } = data;
 
     // 1. 根据 remoteKeyId 找到对应的 API Key
-    const apiKey = await prisma.apiKey.findUnique({
+    const apiKey = await prisma.apiKey.findFirst({
       where: { remoteKeyId },
     });
 

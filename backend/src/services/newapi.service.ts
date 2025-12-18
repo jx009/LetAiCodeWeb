@@ -46,6 +46,7 @@ class NewApiService {
       baseURL: this.baseURL,
       headers: {
         'Authorization': `Bearer ${this.adminToken}`,
+        'New-Api-User': '2',
         'Content-Type': 'application/json',
       },
       timeout: 10000,

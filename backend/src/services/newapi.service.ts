@@ -77,6 +77,8 @@ class NewApiService {
         remain_quota: -1, // 无限额度（在 LetAiCode 系统中控制积分）
         unlimited_quota: true,
         user_id: parseInt(userId, 10) || 0, // new-api 的用户 ID（可能不同）
+        source: 'letaicode', // Mark as LetAiCode source
+        group: 'letaicode', // Group for LetAiCode keys
       });
 
       if (!response.data.success || !response.data.data) {

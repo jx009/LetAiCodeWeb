@@ -7,10 +7,12 @@ import packageRoutes from './package.routes';
 import orderRoutes from './order.routes';
 import paymentRoutes from './payment.routes';
 import keysRoutes from './keys.routes';
+import apiKeyRoutes from './api-key.routes';
 import usageRoutes from './usage.routes';
 import transactionRoutes from './transaction.routes';
 import optionRoutes from './option.routes';
 import adminRoutes from './admin.routes';
+import webhookRoutes from './webhook.routes';
 
 const router = Router();
 
@@ -29,6 +31,9 @@ router.use('/payment', paymentRoutes);
 // API Keys 路由
 router.use('/keys', keysRoutes);
 
+// API Key 相关路由（供 new-api 调用）
+router.use('/api-keys', apiKeyRoutes);
+
 // 使用记录路由
 router.use('/usage', usageRoutes);
 
@@ -40,5 +45,8 @@ router.use('/options', optionRoutes);
 
 // 管理员路由（用户管理）
 router.use('/admin', adminRoutes);
+
+// Webhook 路由（来自 new-api 的事件）
+router.use('/webhooks', webhookRoutes);
 
 export default router;

@@ -84,27 +84,16 @@ class UsageController {
   }
 
   /**
-   * 手动触发同步
+   * 手动触发同步（已禁用）
    * POST /api/usage/sync
+   *
+   * 注意：现在使用 webhook 实时推送，手动同步已禁用以避免重复扣费
    */
   async manualSync(req: Request, res: Response) {
-    try {
-      const userId = (req as any).user.id;
-
-      const result = await usageService.manualSync(userId);
-
-      res.json({
-        success: true,
-        data: result,
-        message: 'Sync completed successfully',
-      });
-    } catch (error: any) {
-      console.error('[UsageController] manualSync error:', error);
-      res.status(500).json({
-        success: false,
-        message: error.message || 'Failed to sync usage records',
-      });
-    }
+    res.status(400).json({
+      success: false,
+      message: '手动同步已禁用，使用记录通过 webhook 实时推送',
+    });
   }
 }
 

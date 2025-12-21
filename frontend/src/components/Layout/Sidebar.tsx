@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   AppstoreOutlined,
   KeyOutlined,
-  BarChartOutlined,
   UserOutlined,
   WalletOutlined,
   DollarOutlined,
@@ -14,6 +13,7 @@ import {
   ShoppingOutlined,
   TeamOutlined,
   GiftOutlined,
+  BarChartOutlined,
 } from '@ant-design/icons';
 import { useUIStore, useAuthStore } from '@/store';
 import { ROUTES, APP_NAME } from '@/utils/constants';
@@ -50,12 +50,6 @@ const Sidebar = () => {
       label: '接口密钥',
       icon: <KeyOutlined />,
       path: ROUTES.API_KEYS,
-    },
-    {
-      key: ROUTES.USAGE,
-      label: '账单记录',
-      icon: <BarChartOutlined />,
-      path: ROUTES.USAGE,
     },
     {
       key: ROUTES.ACCOUNT,

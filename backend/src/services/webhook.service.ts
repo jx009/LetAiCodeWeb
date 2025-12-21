@@ -160,7 +160,7 @@ class WebhookService {
     const deductResult = await creditBalanceService.deductCreditsFromUsd(
       apiKey.userId,
       cost,
-      `API 调用扣费（${model}，$${cost.toFixed(6)}）`,
+      model,
       usageRecord.id
     );
 

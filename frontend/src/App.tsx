@@ -10,7 +10,6 @@ import AppLayout from './components/Layout/AppLayout';
 import Login from './pages/Login';
 import CodingPlan from './pages/CodingPlan';
 import ApiKeys from './pages/ApiKeys';
-import Usage from './pages/Usage';
 import Account from './pages/Account';
 import Balance from './pages/Balance';
 import Recharge from './pages/Recharge';
@@ -89,9 +88,6 @@ function App() {
 
           {/* API 密钥管理 */}
           <Route path={ROUTES.API_KEYS} element={<ApiKeys />} />
-
-          {/* 使用记录 */}
-          <Route path={ROUTES.USAGE} element={<Usage />} />
 
           {/* 账户信息 */}
           <Route path={ROUTES.ACCOUNT} element={<Account />} />

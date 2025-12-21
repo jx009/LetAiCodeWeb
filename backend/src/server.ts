@@ -8,7 +8,8 @@ import app from './app';
 import { logger } from './utils/logger.util';
 import prisma from './utils/prisma';
 import redis from './utils/redis.util';
-import usageService from './services/usage.service';
+// 已禁用：使用 webhook 实时推送代替定时同步，避免重复扣除积分
+// import usageService from './services/usage.service';
 import { startAllJobs, stopAllJobs } from './jobs';
 
 const PORT = process.env.PORT || 4000;
@@ -20,9 +21,9 @@ app.listen(PORT, () => {
   logger.info(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
   logger.info(`💾 Database: ${process.env.DATABASE_URL?.includes('postgresql') ? 'PostgreSQL' : 'SQLite'}`);
 
-  // 初始化使用记录同步定时任务
-  usageService.initSyncScheduler();
-  logger.info(`⏰ Usage sync scheduler initialized`);
+  // 已禁用定时同步：使用 webhook 实时推送代替，避免重复扣除积分
+  // usageService.initSyncScheduler();
+  // logger.info(`⏰ Usage sync scheduler initialized`);
 
   // 启动积分补充定时任务
   startAllJobs();
@@ -32,7 +33,7 @@ app.listen(PORT, () => {
 // 优雅关闭
 process.on('SIGTERM', async () => {
   logger.info('SIGTERM signal received: closing HTTP server');
-  usageService.stopSyncScheduler();
+  // usageService.stopSyncScheduler();
   stopAllJobs();
   await prisma.$disconnect();
   await redis.disconnect();
@@ -41,7 +42,7 @@ process.on('SIGTERM', async () => {
 
 process.on('SIGINT', async () => {
   logger.info('SIGINT signal received: closing HTTP server');
-  usageService.stopSyncScheduler();
+  // usageService.stopSyncScheduler();
   stopAllJobs();
   await prisma.$disconnect();
   await redis.disconnect();

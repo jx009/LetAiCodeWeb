@@ -14,6 +14,7 @@ import {
   getAdminUsageRecords,
   getAdminUsageStats,
   getUsedModels,
+  resetCredits,
 } from '@/controllers/subscription.controller';
 import { authMiddleware } from '@/middlewares/auth.middleware';
 import { adminAuth, rootAuth } from '@/middlewares/role.middleware';
@@ -44,6 +45,9 @@ router.get('/history', getSubscriptionHistory);
 
 // 获取积分交易记录
 router.get('/transactions', getTransactions);
+
+// 手动重置积分到天花板
+router.post('/reset-credits', resetCredits);
 
 /**
  * 管理员路由

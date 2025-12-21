@@ -92,12 +92,19 @@ export interface CreditTransaction {
 export interface PackagePlan {
   id: string;
   name: string;
-  price: string;
-  creditAmount: number;
-  bonusCredit: number;
+  cycle: 'WEEK' | 'MONTH' | 'QUARTER' | 'YEAR';
+  cycleDays: number;
+  price: number;
+  baseCredits: number;
+  replenishCredits: number;
+  displayCredits: number; // 展示积分 = base*30 + replenish*24*30
+  monthlyPrice: number;
+  monthlySavings: number;
+  savingsPercentage: number;
   desc: string | null;
   sortOrder: number;
   active: boolean;
+  recommended: boolean;
 }
 
 // ========== 支付订单相关 ==========
@@ -115,8 +122,6 @@ export interface PaymentOrder {
   userId: string;
   packageId: string;
   amount: string;
-  creditAmount: number;
-  bonusCredit: number;
   status: PaymentStatus;
   paymentMethod: string | null;
   transactionId: string | null;

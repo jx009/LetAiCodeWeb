@@ -180,15 +180,15 @@ const Recharge = () => {
                           </Text>
                         </div>
                         <div>
-                          <Text type="secondary">基础积分：</Text>
-                          <Text strong>{pkg.creditAmount.toLocaleString()}</Text>
+                          <Text type="secondary">月积分量：</Text>
+                          <Text strong>{(pkg.displayCredits ?? (pkg.baseCredits * 30 + pkg.replenishCredits * 24 * 30))?.toLocaleString()}</Text>
                         </div>
-                        {pkg.bonusCredit > 0 && (
-                          <div>
-                            <Text type="secondary">赠送积分：</Text>
-                            <Tag color="success">+{pkg.bonusCredit.toLocaleString()}</Tag>
-                          </div>
-                        )}
+                        <div>
+                          <Text type="secondary">基础积分：</Text>
+                          <Text>{pkg.baseCredits?.toLocaleString()}</Text>
+                          <Text type="secondary" style={{ marginLeft: 8 }}>补充/h：</Text>
+                          <Text>{pkg.replenishCredits?.toLocaleString()}</Text>
+                        </div>
                         {pkg.desc && (
                           <Paragraph type="secondary" ellipsis={{ rows: 2 }} style={{ margin: 0 }}>
                             {pkg.desc}

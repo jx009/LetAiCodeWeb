@@ -27,7 +27,7 @@ import {
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs, { Dayjs } from 'dayjs';
-import { getBalance, getTransactions, getSubscription } from '@/api/subscription';
+import { getBalance, getTransactions, getSubscription, resetCredits } from '@/api/subscription';
 import type { CreditBalanceInfo, CreditTransaction, SubscriptionDetail, TransactionType } from '@/api/subscription';
 import './styles.less';
 
@@ -122,6 +122,24 @@ const Balance: React.FC = () => {
   const handleRefresh = () => {
     fetchData();
     message.success('刷新成功');
+  };
+
+  /**
+   * 重置积分到天花板
+   */
+  const handleResetCredits = async () => {
+    try {
+      setLoading(true);
+      const response = await resetCredits();
+      if (response.success) {
+        message.success('积分已重置');
+        fetchData();
+      }
+    } catch (error: any) {
+      message.error(error.response?.data?.message || '重置积分失败');
+    } finally {
+      setLoading(false);
+    }
   };
 
   /**
@@ -297,6 +315,16 @@ const Balance: React.FC = () => {
                         <ClockCircleOutlined style={{ color: '#1890ff' }} /> 下次补充：
                         {dayjs(creditBalance.nextReplenishAt).format('HH:mm')}
                       </span>
+                    )}
+                    {creditBalance.hasSubscription && creditBalance.currentCredits < creditBalance.baseCredits && (
+                      <Button
+                        type="primary"
+                        size="small"
+                        onClick={handleResetCredits}
+                        loading={loading}
+                      >
+                        重置积分
+                      </Button>
                     )}
                   </Space>
                 </div>

@@ -299,3 +299,36 @@ export const getUsedModels = async (req: Request, res: Response) => {
     });
   }
 };
+
+/**
+ * 用户手动重置积分到天花板
+ * POST /api/subscription/reset-credits
+ */
+export const resetCredits = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+
+    const result = await creditBalanceService.dailyReset(userId);
+
+    if (!result.reset) {
+      return res.status(400).json({
+        success: false,
+        message: '积分已满，无需重置',
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: '积分已重置',
+      data: {
+        newCredits: result.newCredits,
+      },
+    });
+  } catch (error: any) {
+    logger.error('Reset credits error:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || '重置积分失败',
+    });
+  }
+};

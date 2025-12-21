@@ -8,11 +8,8 @@ import {
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useRef } from 'react';
 import { useAuthStore } from '@/store';
 import { ROUTES } from '@/utils/constants';
-import { formatCredit } from '@/utils/format';
-import { getBalance } from '@/api';
 import './TopHeader.css';
 
 const { Header } = Layout;
@@ -24,47 +21,10 @@ const { Text } = Typography;
  */
 const TopHeader = () => {
   const navigate = useNavigate();
-  const { user, clearAuth, updateBalance, isAuthenticated } = useAuthStore();
-  const intervalRef = useRef<NodeJS.Timeout>();
-
-  // 获取余额
-  const fetchBalance = async () => {
-    if (!isAuthenticated) return;
-
-    try {
-      const response = await getBalance();
-      if (response.success && response.data) {
-        updateBalance(response.data.balance);
-      }
-    } catch (error) {
-      // 静默失败，不影响用户体验
-      console.error('Failed to fetch balance:', error);
-    }
-  };
-
-  // 初始化：获取余额并设置定时刷新（每30秒）
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchBalance();
-
-      // 每30秒刷新一次余额
-      intervalRef.current = setInterval(() => {
-        fetchBalance();
-      }, 30000);
-    }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [isAuthenticated]);
+  const { user, clearAuth } = useAuthStore();
 
   // 退出登录
   const handleLogout = () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
     clearAuth();
     navigate(ROUTES.LOGIN);
   };
@@ -104,16 +64,8 @@ const TopHeader = () => {
   return (
     <Header className="top-header">
       <div className="top-header-content">
-        {/* 右侧：用户信息、余额、通知 */}
+        {/* 右侧：用户信息、通知 */}
         <Space size="large" className="header-right">
-          {/* 余额显示 */}
-          <div className="balance-display" onClick={() => navigate(ROUTES.BALANCE)}>
-            <WalletOutlined style={{ fontSize: 16, color: '#24be58' }} />
-            <Text style={{ marginLeft: 8, fontWeight: 500 }}>
-              余额: {formatCredit(user?.balance || 0)} 积分
-            </Text>
-          </div>
-
           {/* 通知 */}
           <Badge count={0} offset={[-5, 5]}>
             <div

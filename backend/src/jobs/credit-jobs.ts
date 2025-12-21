@@ -6,7 +6,6 @@ import { replenishService } from '@/services/replenish.service';
 import { logger } from '@/utils/logger.util';
 
 let hourlyTask: cron.ScheduledTask | null = null;
-let dailyTask: cron.ScheduledTask | null = null;
 
 /**
  * 启动积分定时任务
@@ -26,21 +25,10 @@ export function startCreditJobs() {
     }
   });
 
-  // 每天凌晨 0 点执行每日重置
-  // 注意：这里使用服务器时间，每日重置时会检查每个用户的时区
-  dailyTask = cron.schedule('0 0 * * *', async () => {
-    try {
-      logger.info('[CronJob] Starting daily credit reset...');
-      const result = await replenishService.runDailyReset();
-      logger.info(`[CronJob] Daily reset completed: ${result.processed} users, ${result.reset} reset`);
-    } catch (error) {
-      logger.error('[CronJob] Daily reset failed:', error);
-    }
-  });
+  // 每日重置功能已改为用户手动触发，不再自动执行
 
   logger.info('[CronJob] Credit jobs started');
   logger.info('[CronJob] - Hourly replenish: every hour at minute 0');
-  logger.info('[CronJob] - Daily reset: every day at 00:00');
 }
 
 /**
@@ -52,11 +40,6 @@ export function stopCreditJobs() {
     hourlyTask = null;
   }
 
-  if (dailyTask) {
-    dailyTask.stop();
-    dailyTask = null;
-  }
-
   logger.info('[CronJob] Credit jobs stopped');
 }
 
@@ -66,7 +49,6 @@ export function stopCreditJobs() {
 export function getCreditJobsStatus() {
   return {
     hourlyRunning: hourlyTask !== null,
-    dailyRunning: dailyTask !== null,
     replenishStatus: replenishService.getStatus(),
   };
 }

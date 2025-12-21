@@ -116,6 +116,11 @@ export const getTransactions = (page: number = 1, pageSize: number = 20, type?: 
   });
 };
 
+// 手动重置积分到天花板
+export const resetCredits = () => {
+  return http.post<ApiResponse<{ newCredits: number }>>('/subscription/reset-credits');
+};
+
 // ========== 管理员 API ==========
 
 // 获取订阅统计

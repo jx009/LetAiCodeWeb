@@ -63,11 +63,26 @@ class AuthService {
       }
 
       if (storedCode !== code) {
-        throw new Error('验证码错误');
+        // 验证码错误，增加错误次数计数
+        const attemptKey = `verify_attempt:${email}`;
+        const attempts = await get(attemptKey);
+        const currentAttempts = attempts ? parseInt(attempts) + 1 : 1;
+
+        if (currentAttempts >= 5) {
+          // 超过5次错误，删除验证码
+          await del(codeKey);
+          await del(attemptKey);
+          throw new Error('验证码错误次数过多，请重新获取验证码');
+        }
+
+        // 记录错误次数，与验证码同样的过期时间
+        await setWithExpiry(attemptKey, currentAttempts.toString(), this.CODE_EXPIRY);
+        throw new Error(`验证码错误，还剩 ${5 - currentAttempts} 次机会`);
       }
 
-      // 验证成功后删除验证码（防止重复使用）
+      // 验证成功后删除验证码和错误计数（防止重复使用）
       await del(codeKey);
+      await del(`verify_attempt:${email}`);
 
       return true;
     } catch (error: any) {

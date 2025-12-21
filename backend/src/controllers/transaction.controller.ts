@@ -2,7 +2,7 @@
  * 积分交易记录控制器
  */
 import { Request, Response } from 'express';
-import creditService from '../services/credit.service';
+import { creditBalanceService } from '../services/credit-balance.service';
 import { TransactionType } from '@prisma/client';
 
 class TransactionController {
@@ -33,13 +33,11 @@ class TransactionController {
         params.endDate = new Date(endDate as string);
       }
 
-      const result = await creditService.getTransactions(
+      const result = await creditBalanceService.getTransactions(
         userId,
-        params.type,
-        params.startDate,
-        params.endDate,
         params.page,
-        params.pageSize
+        params.pageSize,
+        params.type
       );
 
       res.json({
@@ -63,12 +61,16 @@ class TransactionController {
     try {
       const userId = (req as any).user.id;
 
-      const balance = await creditService.getBalance(userId);
+      const balanceInfo = await creditBalanceService.getBalance(userId);
 
       res.json({
         success: true,
         data: {
-          balance,
+          balance: balanceInfo.currentCredits,
+          baseCredits: balanceInfo.baseCredits,
+          replenishCredits: balanceInfo.replenishCredits,
+          nextReplenishAt: balanceInfo.nextReplenishAt,
+          hasSubscription: balanceInfo.hasSubscription,
         },
       });
     } catch (error: any) {
@@ -99,7 +101,7 @@ class TransactionController {
         params.endDate = new Date(endDate as string);
       }
 
-      const result = await creditService.getStatistics(
+      const result = await creditBalanceService.getStatistics(
         userId,
         params.startDate,
         params.endDate

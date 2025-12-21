@@ -5,7 +5,7 @@
 import cron from 'node-cron';
 import prisma from '@/utils/prisma';
 import newApiService from './newapi.service';
-import creditService from './credit.service';
+import { creditBalanceService } from './credit-balance.service';
 import { KeyStatus } from '@prisma/client';
 
 interface UsageQueryParams {
@@ -182,14 +182,13 @@ class UsageService {
         },
       });
 
-      // 3. 扣除积分
-      await creditService.deductCredit({
-        userId: apiKey.userId,
-        apiKeyId: keyId,
-        tokens: totalTokens,
-        model: log.model_name || 'unknown',
-        usageRecordId: usageRecord.id,
-      });
+      // 3. 扣除积分（使用新的积分余额服务）
+      await creditBalanceService.deductCredits(
+        apiKey.userId,
+        creditCost,
+        `API 调用扣费（${log.model_name || 'unknown'}，${totalTokens} tokens）`,
+        usageRecord.id
+      );
     });
 
     console.log(

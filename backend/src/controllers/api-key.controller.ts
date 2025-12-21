@@ -4,7 +4,7 @@
  */
 import { Request, Response } from 'express';
 import prisma from '@/utils/prisma';
-import creditService from '@/services/credit.service';
+import { creditBalanceService } from '@/services/credit-balance.service';
 
 class ApiKeyController {
   /**
@@ -59,8 +59,8 @@ class ApiKeyController {
         });
       }
 
-      // 3. 获取用户的实时积分余额
-      const balance = await creditService.getBalance(apiKey.userId);
+      // 3. 获取用户的实时积分余额（使用新的积分余额服务）
+      const balance = await creditBalanceService.getCurrentCredits(apiKey.userId);
 
       // 4. 返回响应
       return res.status(200).json({

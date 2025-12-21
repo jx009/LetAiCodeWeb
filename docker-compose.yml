@@ -76,6 +76,7 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - NEW_API_BASE_URL=${NEW_API_BASE_URL}
       - NEW_API_ADMIN_TOKEN=${NEW_API_ADMIN_TOKEN}
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET:-letaicode-wh-secret-Jx0520}
     depends_on:
       mysql:
         condition: service_healthy

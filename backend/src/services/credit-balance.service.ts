@@ -743,6 +743,80 @@ class CreditBalanceService {
     });
     return models.map((m) => m.model);
   }
+
+  /**
+   * 获取积分统计信息
+   */
+  async getStatistics(userId: string, startDate?: Date, endDate?: Date) {
+    const where: Prisma.CreditTransactionWhereInput = { userId };
+
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) {
+        where.createdAt.gte = startDate;
+      }
+      if (endDate) {
+        where.createdAt.lte = endDate;
+      }
+    }
+
+    // 获取各类型交易的统计
+    const stats = await prisma.creditTransaction.groupBy({
+      by: ['type'],
+      where,
+      _sum: {
+        amount: true,
+      },
+    });
+
+    // 当前余额
+    const currentCredits = await this.getCurrentCredits(userId);
+
+    // 转换为易读的格式
+    const statistics: {
+      currentBalance: number;
+      totalRecharge: number;
+      totalBonus: number;
+      totalDeduct: number;
+      totalRefund: number;
+      totalReplenish: number;
+      totalDailyReset: number;
+    } = {
+      currentBalance: currentCredits,
+      totalRecharge: 0,
+      totalBonus: 0,
+      totalDeduct: 0,
+      totalRefund: 0,
+      totalReplenish: 0,
+      totalDailyReset: 0,
+    };
+
+    stats.forEach((stat) => {
+      const amount = stat._sum.amount || 0;
+      switch (stat.type) {
+        case TransactionType.RECHARGE:
+          statistics.totalRecharge = amount;
+          break;
+        case TransactionType.BONUS:
+          statistics.totalBonus = amount;
+          break;
+        case TransactionType.DEDUCT:
+          statistics.totalDeduct = Math.abs(amount);
+          break;
+        case TransactionType.REFUND:
+          statistics.totalRefund = Math.abs(amount);
+          break;
+        case TransactionType.REPLENISH:
+          statistics.totalReplenish = amount;
+          break;
+        case TransactionType.DAILY_RESET:
+          statistics.totalDailyReset = amount;
+          break;
+      }
+    });
+
+    return statistics;
+  }
 }
 
 export const creditBalanceService = new CreditBalanceService();

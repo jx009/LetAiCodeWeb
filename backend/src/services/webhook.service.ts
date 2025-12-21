@@ -11,7 +11,7 @@ interface WebhookPayload {
   eventType: string;
   timestamp: number;
   data: {
-    remoteKeyId: string;
+    remoteKeyId: number;  // new-api 发送的是 int 类型
     model: string;
     promptTokens: number;
     completionTokens: number;
@@ -122,7 +122,7 @@ class WebhookService {
    * @param data 事件数据
    */
   private async handleUsageEvent(data: {
-    remoteKeyId: string;
+    remoteKeyId: number;  // new-api 发送的是 int 类型
     model: string;
     promptTokens: number;
     completionTokens: number;
@@ -131,10 +131,12 @@ class WebhookService {
   }): Promise<void> {
     const { remoteKeyId, model, totalTokens, cost } = data;
 
-    // 1. 根据 remoteKeyId 找到对应的 API Key
+    // 1. 根据 remoteKeyId 找到对应的 API Key（转换为字符串匹配）
     const apiKey = await prisma.apiKey.findFirst({
-      where: { remoteKeyId },
+      where: { remoteKeyId: String(remoteKeyId) },
     });
+
+    console.log(`[WebhookService] Looking for API Key with remoteKeyId: ${remoteKeyId}, found: ${apiKey ? apiKey.id : 'null'}`);
 
     if (!apiKey) {
       throw new Error(`API Key not found for remoteKeyId: ${remoteKeyId}`);

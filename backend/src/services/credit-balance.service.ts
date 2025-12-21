@@ -343,7 +343,7 @@ class CreditBalanceService {
 
   /**
    * 初始化用户积分（购买订阅时）
-   * 注意：初始积分为 0，需要等待每小时补充或每日重置
+   * 充值成功后，积分直接设置为基础积分数量
    */
   async initializeCredits(
     userId: string,
@@ -356,21 +356,22 @@ class CreditBalanceService {
         where: { userId },
       });
 
+      const previousCredits = existingBalance?.currentCredits ?? 0;
+
       // 更新或创建积分余额记录
-      // 初始积分为 0，不直接给满额
+      // 充值成功后，积分直接设置为基础积分数量
       await tx.userCreditBalance.upsert({
         where: { userId },
         create: {
           userId,
           baseCredits,
           replenishCredits,
-          currentCredits: 0, // 初始积分为 0
+          currentCredits: baseCredits,
         },
         update: {
           baseCredits,
           replenishCredits,
-          // 续订时保持当前积分不变，只更新天花板和补充量
-          currentCredits: existingBalance?.currentCredits ?? 0,
+          currentCredits: baseCredits,
         },
       });
 
@@ -379,15 +380,15 @@ class CreditBalanceService {
         data: {
           userId,
           type: TransactionType.SUBSCRIPTION,
-          amount: 0,
-          balance: existingBalance?.currentCredits ?? 0,
-          desc: `订阅开通，天花板 ${baseCredits} 积分，每小时补充 ${replenishCredits} 积分`,
+          amount: baseCredits - previousCredits,
+          balance: baseCredits,
+          desc: `订阅开通，获得 ${baseCredits} 积分，每小时补充 ${replenishCredits} 积分`,
         },
       });
     });
 
     logger.info(
-      `Initialized credits for user ${userId}: base=${baseCredits}, replenish=${replenishCredits}, currentCredits=0`
+      `Initialized credits for user ${userId}: base=${baseCredits}, replenish=${replenishCredits}, currentCredits=${baseCredits}`
     );
   }
 

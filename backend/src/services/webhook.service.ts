@@ -3,8 +3,7 @@
  * 负责处理来自 new-api 的 webhook 事件
  */
 import prisma from '@/utils/prisma';
-import creditService from './credit.service';
-import { TransactionType } from '@prisma/client';
+import { creditBalanceService } from './credit-balance.service';
 import crypto from 'crypto';
 
 interface WebhookPayload {
@@ -17,7 +16,7 @@ interface WebhookPayload {
     promptTokens: number;
     completionTokens: number;
     totalTokens: number;
-    creditCost: number;
+    cost: number;  // 美元金额（从 new-api 获取）
   };
 }
 
@@ -128,9 +127,9 @@ class WebhookService {
     promptTokens: number;
     completionTokens: number;
     totalTokens: number;
-    creditCost: number;
+    cost: number;  // 美元金额
   }): Promise<void> {
-    const { remoteKeyId, model, totalTokens, creditCost } = data;
+    const { remoteKeyId, model, totalTokens, cost } = data;
 
     // 1. 根据 remoteKeyId 找到对应的 API Key
     const apiKey = await prisma.apiKey.findFirst({
@@ -141,56 +140,47 @@ class WebhookService {
       throw new Error(`API Key not found for remoteKeyId: ${remoteKeyId}`);
     }
 
-    // 2. 创建使用记录和积分交易（事务）
-    await prisma.$transaction(async (tx: any) => {
-      // 2.1 创建使用记录
-      const usageRecord = await tx.usageRecord.create({
-        data: {
-          apiKeyId: apiKey.id,
-          model,
-          promptTokens: data.promptTokens,
-          completionTokens: data.completionTokens,
-          totalTokens,
-          creditCost,
-          timestamp: new Date(),
-        },
-      });
+    // 2. 创建使用记录
+    const usageRecord = await prisma.usageRecord.create({
+      data: {
+        apiKeyId: apiKey.id,
+        model,
+        promptTokens: data.promptTokens,
+        completionTokens: data.completionTokens,
+        totalTokens,
+        creditCost: 0, // 先设为0，后面更新
+        costUsd: cost,
+        timestamp: new Date(),
+      },
+    });
 
-      // 2.2 获取当前用户余额
-      const lastTransaction = await tx.creditTransaction.findFirst({
-        where: { userId: apiKey.userId },
-        orderBy: { createdAt: 'desc' },
-      });
+    // 3. 使用新的积分系统扣除积分
+    const deductResult = await creditBalanceService.deductCreditsFromUsd(
+      apiKey.userId,
+      cost,
+      `API 调用扣费（${model}，$${cost.toFixed(6)}）`,
+      usageRecord.id
+    );
 
-      const currentBalance = lastTransaction?.balance || 0;
+    // 4. 更新使用记录的积分消耗
+    await prisma.usageRecord.update({
+      where: { id: usageRecord.id },
+      data: { creditCost: deductResult.creditCost },
+    });
 
-      // 2.3 检查余额是否足够
-      if (currentBalance < creditCost) {
-        throw new Error('用户积分余额不足');
-      }
+    // 5. 如果扣除失败，记录但不抛出错误（已经调用了API，需要记录）
+    if (!deductResult.success) {
+      console.warn(
+        `[WebhookService] Failed to deduct credits for user ${apiKey.userId}: ${deductResult.message}`
+      );
+      // 注意：这里不抛出错误，因为 API 调用已经发生
+      // 积分不足的情况会在下次调用前检查
+    }
 
-      // 2.4 计算新余额
-      const newBalance = currentBalance - creditCost;
-
-      // 2.5 创建积分扣费记录
-      await tx.creditTransaction.create({
-        data: {
-          userId: apiKey.userId,
-          type: TransactionType.DEDUCT,
-          amount: -creditCost,
-          balance: newBalance,
-          ref: usageRecord.id,
-          desc: `API 调用扣费（${model}，${totalTokens} tokens）`,
-        },
-      });
-
-      // 2.6 更新 API Key 的最后使用时间
-      await tx.apiKey.update({
-        where: { id: apiKey.id },
-        data: {
-          lastUsedAt: new Date(),
-        },
-      });
+    // 6. 更新 API Key 的最后使用时间
+    await prisma.apiKey.update({
+      where: { id: apiKey.id },
+      data: { lastUsedAt: new Date() },
     });
   }
 

@@ -4,9 +4,10 @@
  */
 import prisma from '@/utils/prisma';
 import { logger } from '@/utils/logger.util';
-import { PaymentStatus } from '@prisma/client';
+import { PaymentStatus, Prisma } from '@prisma/client';
 import { epayService } from './epay.service';
 import optionService from './option.service';
+import { subscriptionService } from './subscription.service';
 
 // 订单锁（防止并发处理同一订单）
 const orderLocks = new Map<string, Promise<void>>();
@@ -36,15 +37,15 @@ class OrderService {
   async createOrder(userId: string, packageId: string) {
     try {
       // 1. 获取套餐信息
-      const packagePlan = await prisma.packagePlan.findUnique({
+      const subscriptionPackage = await prisma.subscriptionPackage.findUnique({
         where: { id: packageId },
       });
 
-      if (!packagePlan) {
+      if (!subscriptionPackage) {
         throw new Error('套餐不存在');
       }
 
-      if (!packagePlan.active) {
+      if (!subscriptionPackage.active) {
         throw new Error('该套餐已下架');
       }
 
@@ -57,9 +58,7 @@ class OrderService {
           orderNo,
           userId,
           packageId,
-          amount: packagePlan.price,
-          creditAmount: packagePlan.creditAmount,
-          bonusCredit: packagePlan.bonusCredit,
+          amount: subscriptionPackage.price,
           status: PaymentStatus.PENDING,
           expiresAt: this.generateExpiryTime(),
         },
@@ -192,7 +191,7 @@ class OrderService {
         type: paymentMethod,
         serviceTradeNo: orderNo,
         name: order.package.name,
-        money: order.amount,
+        money: order.amount.toString(),
         notifyUrl: callbackUrl,
         returnUrl: returnUrl,
         device: 'pc',
@@ -256,12 +255,14 @@ class OrderService {
 
   /**
    * 处理支付成功（内部方法）
+   * 新逻辑：支付成功后创建/续费订阅
    */
   private async processPaymentSuccess(orderNo: string, transactionId: string): Promise<void> {
     try {
       // 1. 查询订单
       const order = await prisma.paymentOrder.findUnique({
         where: { orderNo },
+        include: { package: true },
       });
 
       if (!order) {
@@ -275,62 +276,22 @@ class OrderService {
         return;
       }
 
-      // 3. 使用事务处理：更新订单 + 充值积分
-      await prisma.$transaction(async (tx) => {
-        // 3.1 更新订单状态
-        await tx.paymentOrder.update({
-          where: { orderNo },
-          data: {
-            status: PaymentStatus.PAID,
-            paidAt: new Date(),
-            transactionId,
-          },
-        });
-
-        // 3.2 获取用户当前余额（从最新的积分交易记录）
-        const lastTransaction = await tx.creditTransaction.findFirst({
-          where: { userId: order.userId },
-          orderBy: { createdAt: 'desc' },
-        });
-
-        const currentBalance = lastTransaction?.balance || 0;
-
-        // 3.3 计算总充值积分（基础 + 赠送）
-        const totalCredits = order.creditAmount + order.bonusCredit;
-        const newBalance = currentBalance + totalCredits;
-
-        // 3.5 记录积分交易（基础充值）
-        if (order.creditAmount > 0) {
-          await tx.creditTransaction.create({
-            data: {
-              userId: order.userId,
-              type: 'RECHARGE',
-              amount: order.creditAmount,
-              balance: currentBalance + order.creditAmount,
-              ref: orderNo,
-              desc: `充值 ${order.amount} 元`,
-            },
-          });
-        }
-
-        // 3.6 记录积分交易（赠送）
-        if (order.bonusCredit > 0) {
-          await tx.creditTransaction.create({
-            data: {
-              userId: order.userId,
-              type: 'BONUS',
-              amount: order.bonusCredit,
-              balance: newBalance,
-              ref: orderNo,
-              desc: `充值赠送`,
-            },
-          });
-        }
-
-        logger.info(
-          `Order ${orderNo} paid successfully, credited ${totalCredits} (${order.creditAmount} + ${order.bonusCredit}) to user ${order.userId}`
-        );
+      // 3. 更新订单状态
+      await prisma.paymentOrder.update({
+        where: { orderNo },
+        data: {
+          status: PaymentStatus.PAID,
+          paidAt: new Date(),
+          transactionId,
+        },
       });
+
+      // 4. 创建/续费订阅
+      await subscriptionService.createSubscription(order.userId, order.packageId, order.id);
+
+      logger.info(
+        `Order ${orderNo} paid successfully, subscription created/renewed for user ${order.userId}`
+      );
     } catch (error) {
       logger.error(`Error processing payment success for order ${orderNo}:`, error);
       throw error;

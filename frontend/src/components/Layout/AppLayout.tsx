@@ -1,8 +1,10 @@
+import { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Layout } from 'antd';
 import Sidebar from './Sidebar';
 import TopHeader from './TopHeader';
-import { useUIStore } from '@/store';
+import { useUIStore, useAuthStore } from '@/store';
+import { getCurrentUser } from '@/api/auth';
 import './AppLayout.css';
 
 const { Content } = Layout;
@@ -13,6 +15,22 @@ const { Content } = Layout;
  */
 const AppLayout = () => {
   const { sidebarCollapsed } = useUIStore();
+  const { updateUser } = useAuthStore();
+
+  // 进入应用时刷新用户信息（确保角色等信息是最新的）
+  useEffect(() => {
+    const refreshUserInfo = async () => {
+      try {
+        const res = await getCurrentUser();
+        if (res.success && res.data?.user) {
+          updateUser(res.data.user);
+        }
+      } catch (error) {
+        console.error('Failed to refresh user info:', error);
+      }
+    };
+    refreshUserInfo();
+  }, [updateUser]);
 
   return (
     <Layout style={{ minHeight: '100vh' }}>

@@ -17,6 +17,7 @@ model User {
   name      String?
   role      UserRole @default(USER) // 用户角色
   status    Int      @default(1) // 状态（1=启用 0=禁用）
+  timezone  String   @default("Asia/Shanghai") // 用户时区
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -25,6 +26,8 @@ model User {
   creditTransactions CreditTransaction[]
   sessions           Session[]
   orders             PaymentOrder[]
+  subscription       UserSubscription? // 用户订阅
+  creditBalance      UserCreditBalance? // 用户积分余额
 
   @@map("users")
 }
@@ -85,7 +88,8 @@ model UsageRecord {
   promptTokens     Int      // 提示 tokens
   completionTokens Int      // 完成 tokens
   totalTokens      Int      // 总 tokens
-  creditCost       Int      // 积分消耗
+  costUsd          Float    @default(0) // 原始美元金额
+  creditCost       Int      // 积分消耗（根据汇率换算）
   rawMeta          String?  @db.VarChar(10000) // 原始元数据（JSON 字符串）
 
   // 关联
@@ -114,41 +118,96 @@ model CreditTransaction {
 }
 
 enum TransactionType {
-  RECHARGE     // 充值
-  BONUS        // 赠送
-  DEDUCT       // 扣除
-  REFUND       // 退款
-  ADMIN_ADJUST // 管理员调整
+  SUBSCRIPTION  // 订阅开通/续费
+  REPLENISH     // 每小时补充
+  DAILY_RESET   // 每日重置
+  DEDUCT        // API 调用扣除
+  ADMIN_ADJUST  // 管理员调整
+  RECHARGE      // 充值（保留兼容）
+  BONUS         // 赠送（保留兼容）
+  REFUND        // 退款（保留兼容）
 }
 
-// ========== 套餐计划表 ==========
-model PackagePlan {
-  id           String   @id @default(uuid())
-  name         String   // 套餐名称
-  price        String   // 价格（元）
-  creditAmount Int      // 基础积分
-  bonusCredit  Int      @default(0) // 赠送积分
-  desc         String?  // 描述
-  sortOrder    Int      @default(0) // 排序
-  active       Boolean  @default(true) // 是否激活
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+// ========== 用户积分余额表（新增） ==========
+model UserCreditBalance {
+  id               String    @id @default(uuid())
+  userId           String    @unique
+  baseCredits      Int       @default(0) // 基础积分（天花板）
+  replenishCredits Int       @default(0) // 每小时补充量
+  currentCredits   Int       @default(0) // 当前可用积分
+  lastReplenishAt  DateTime  @default(now()) // 上次补充时间
+  lastDailyResetAt DateTime? // 上次每日重置时间
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   // 关联
-  orders PaymentOrder[]
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("package_plans")
+  @@map("user_credit_balances")
 }
 
-// ========== 支付订单表 ==========
+// ========== 用户订阅表（新增） ==========
+model UserSubscription {
+  id        String             @id @default(uuid())
+  userId    String             @unique
+  packageId String
+  status    SubscriptionStatus @default(ACTIVE)
+  startDate DateTime           // 订阅开始时间
+  endDate   DateTime           // 订阅结束时间
+  autoRenew Boolean            @default(false) // 是否自动续费
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  // 关联
+  user    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  package SubscriptionPackage @relation(fields: [packageId], references: [id])
+
+  @@map("user_subscriptions")
+}
+
+enum SubscriptionStatus {
+  ACTIVE    // 激活中
+  EXPIRED   // 已过期
+  CANCELLED // 已取消
+}
+
+// ========== 订阅套餐表（新增） ==========
+model SubscriptionPackage {
+  id               String       @id @default(uuid())
+  name             String       // 套餐名称
+  cycle            PackageCycle // 周期类型
+  cycleDays        Int          // 周期天数（7/30/90/365）
+  price            Decimal      @db.Decimal(10, 2) // 价格（元）
+  baseCredits      Int          // 基础积分（天花板）
+  replenishCredits Int          // 每小时补充积分
+  desc             String?      // 描述
+  sortOrder        Int          @default(0) // 排序
+  active           Boolean      @default(true) // 是否激活
+  recommended      Boolean      @default(false) // 是否推荐
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  // 关联
+  subscriptions UserSubscription[]
+  orders        PaymentOrder[]
+
+  @@map("subscription_packages")
+}
+
+enum PackageCycle {
+  WEEK    // 周
+  MONTH   // 月
+  QUARTER // 季
+  YEAR    // 年
+}
+
+// ========== 支付订单表（修改） ==========
 model PaymentOrder {
   id            String        @id @default(uuid())
   orderNo       String        @unique // 订单号
   userId        String
   packageId     String
-  amount        String        // 支付金额
-  creditAmount  Int           // 购买积分
-  bonusCredit   Int           @default(0) // 赠送积分
+  amount        Decimal       @db.Decimal(10, 2) // 支付金额
   status        PaymentStatus @default(PENDING)
   paymentMethod String?       // 支付方式（wechat/alipay）
   transactionId String?       @db.VarChar(10000) // 第三方交易号
@@ -158,8 +217,8 @@ model PaymentOrder {
   expiresAt     DateTime      // 订单过期时间
 
   // 关联
-  user    User        @relation(fields: [userId], references: [id])
-  package PackagePlan @relation(fields: [packageId], references: [id])
+  user    User                @relation(fields: [userId], references: [id])
+  package SubscriptionPackage @relation(fields: [packageId], references: [id])
 
   @@index([userId, createdAt])
   @@index([orderNo])

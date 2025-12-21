@@ -24,10 +24,16 @@ export const refreshToken = () => {
   return http.post<ApiResponse<{ token: string }>>('/auth/refresh');
 };
 
+// 获取当前用户信息
+export const getCurrentUser = () => {
+  return http.get<ApiResponse<{ user: User }>>('/auth/me');
+};
+
 // 默认导出所有方法
 export default {
   sendEmailCode,
   login,
   logout,
   refreshToken,
+  getCurrentUser,
 };

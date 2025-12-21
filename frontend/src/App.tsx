@@ -21,6 +21,8 @@ import Notifications from './pages/Notifications';
 import AdminUsers from './pages/Admin/Users';
 import AdminSettings from './pages/Admin/Settings';
 import AdminOrders from './pages/Admin/Orders';
+import AdminPackages from './pages/Admin/Packages';
+import AdminUsage from './pages/Admin/Usage';
 
 // 路由守卫组件
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -129,6 +131,22 @@ function App() {
               <RootRoute>
                 <AdminSettings />
               </RootRoute>
+            }
+          />
+          <Route
+            path="/admin/packages"
+            element={
+              <RootRoute>
+                <AdminPackages />
+              </RootRoute>
+            }
+          />
+          <Route
+            path="/admin/usage"
+            element={
+              <AdminRoute>
+                <AdminUsage />
+              </AdminRoute>
             }
           />
         </Route>

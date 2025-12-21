@@ -368,7 +368,7 @@ class AdminService {
     });
 
     const totalAmount = paidOrdersList
-      .reduce((sum, order) => sum + parseFloat(order.amount || '0'), 0)
+      .reduce((sum, order) => sum + parseFloat(order.amount?.toString() || '0'), 0)
       .toFixed(2);
 
     return {

@@ -67,11 +67,14 @@ export interface UsageSummary {
 
 // ========== 积分交易相关 ==========
 export enum TransactionType {
+  SUBSCRIPTION = 'SUBSCRIPTION',
+  REPLENISH = 'REPLENISH',
+  DAILY_RESET = 'DAILY_RESET',
+  DEDUCT = 'DEDUCT',
+  ADMIN_ADJUST = 'ADMIN_ADJUST',
   RECHARGE = 'RECHARGE',
   BONUS = 'BONUS',
-  DEDUCT = 'DEDUCT',
   REFUND = 'REFUND',
-  ADMIN_ADJUST = 'ADMIN_ADJUST',
 }
 
 export interface CreditTransaction {
@@ -122,6 +125,7 @@ export interface PaymentOrder {
   updatedAt: string;
   expiresAt: string;
   package?: PackagePlan;
+  payUrl?: string; // 支付链接
 }
 
 // ========== API 响应相关 ==========

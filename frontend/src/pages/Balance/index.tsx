@@ -1,6 +1,6 @@
 /**
  * 积分余额/交易记录页
- * 完全复刻 MiniMAXI 积分管理页面
+ * 支持新的订阅积分系统
  */
 import React, { useState, useEffect } from 'react';
 import {
@@ -16,12 +16,19 @@ import {
   Space,
   message,
   Tag,
+  Progress,
+  Alert,
 } from 'antd';
-import { ReloadOutlined } from '@ant-design/icons';
+import {
+  ReloadOutlined,
+  ThunderboltOutlined,
+  ClockCircleOutlined,
+  CrownOutlined,
+} from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs, { Dayjs } from 'dayjs';
-import { getTransactions, getBalance, getCreditStatistics } from '@/api/usage';
-import type { CreditTransaction, TransactionType } from '@/types';
+import { getBalance, getTransactions, getSubscription } from '@/api/subscription';
+import type { CreditBalanceInfo, CreditTransaction, SubscriptionDetail, TransactionType } from '@/api/subscription';
 import './styles.less';
 
 const { Title, Text } = Typography;
@@ -36,14 +43,8 @@ const Balance: React.FC = () => {
     pageSize: 20,
     total: 0,
   });
-  const [balance, setBalance] = useState(0);
-  const [statistics, setStatistics] = useState({
-    currentBalance: 0,
-    totalRecharge: 0,
-    totalBonus: 0,
-    totalDeduct: 0,
-    totalRefund: 0,
-  });
+  const [creditBalance, setCreditBalance] = useState<CreditBalanceInfo | null>(null);
+  const [subscription, setSubscription] = useState<SubscriptionDetail | null>(null);
 
   // 筛选条件
   const [filters, setFilters] = useState<{
@@ -55,36 +56,41 @@ const Balance: React.FC = () => {
    * 加载数据
    */
   useEffect(() => {
-    fetchBalance();
-    fetchStatistics();
-    fetchTransactions();
+    fetchData();
   }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      await Promise.all([
+        fetchBalance(),
+        fetchSubscription(),
+        fetchTransactions(),
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchBalance = async () => {
     try {
       const response = await getBalance();
       if (response.success && response.data) {
-        setBalance(response.data.balance);
+        setCreditBalance(response.data);
       }
     } catch (error: any) {
       message.error(error.response?.data?.message || '获取余额失败');
     }
   };
 
-  const fetchStatistics = async () => {
+  const fetchSubscription = async () => {
     try {
-      const params: any = {};
-      if (filters.dateRange) {
-        params.startDate = filters.dateRange[0].format('YYYY-MM-DD');
-        params.endDate = filters.dateRange[1].format('YYYY-MM-DD');
+      const response = await getSubscription();
+      if (response.success) {
+        setSubscription(response.data || null);
       }
-
-      const response = await getCreditStatistics(params);
-      if (response.success && response.data) {
-        setStatistics(response.data);
-      }
-    } catch (error) {
-      // 静默失败
+    } catch (error: any) {
+      console.error('获取订阅信息失败:', error);
     }
   };
 
@@ -92,18 +98,7 @@ const Balance: React.FC = () => {
     try {
       setLoading(true);
 
-      const params: any = {
-        page,
-        pageSize,
-      };
-
-      if (filters.type) params.type = filters.type;
-      if (filters.dateRange) {
-        params.startDate = filters.dateRange[0].format('YYYY-MM-DD');
-        params.endDate = filters.dateRange[1].format('YYYY-MM-DD');
-      }
-
-      const response = await getTransactions(params);
+      const response = await getTransactions(page, pageSize, filters.type);
 
       if (response.success && response.data) {
         const { records, pagination: pag } = response.data;
@@ -125,9 +120,7 @@ const Balance: React.FC = () => {
    * 刷新数据
    */
   const handleRefresh = () => {
-    fetchBalance();
-    fetchStatistics();
-    fetchTransactions();
+    fetchData();
     message.success('刷新成功');
   };
 
@@ -135,7 +128,6 @@ const Balance: React.FC = () => {
    * 应用筛选
    */
   const handleFilter = () => {
-    fetchStatistics();
     fetchTransactions(1, pagination.pageSize);
   };
 
@@ -145,7 +137,6 @@ const Balance: React.FC = () => {
   const handleReset = () => {
     setFilters({});
     setTimeout(() => {
-      fetchStatistics();
       fetchTransactions(1, pagination.pageSize);
     }, 0);
   };
@@ -154,18 +145,18 @@ const Balance: React.FC = () => {
    * 交易类型标签映射
    */
   const getTypeTag = (type: TransactionType) => {
-    const typeMap: Record<
-      TransactionType,
-      { color: string; label: string }
-    > = {
-      RECHARGE: { color: 'green', label: '充值' },
-      BONUS: { color: 'cyan', label: '赠送' },
+    const typeMap: Record<TransactionType, { color: string; label: string }> = {
+      SUBSCRIPTION: { color: 'blue', label: '订阅' },
+      REPLENISH: { color: 'green', label: '补充' },
+      DAILY_RESET: { color: 'cyan', label: '每日重置' },
       DEDUCT: { color: 'red', label: '扣费' },
-      REFUND: { color: 'orange', label: '退款' },
       ADMIN_ADJUST: { color: 'purple', label: '调整' },
+      RECHARGE: { color: 'gold', label: '充值' },
+      BONUS: { color: 'magenta', label: '赠送' },
+      REFUND: { color: 'orange', label: '退款' },
     };
 
-    const config = typeMap[type];
+    const config = typeMap[type] || { color: 'default', label: type };
     return <Tag color={config.color}>{config.label}</Tag>;
   };
 
@@ -226,6 +217,13 @@ const Balance: React.FC = () => {
     },
   ];
 
+  // 计算积分使用百分比
+  const creditPercent = creditBalance
+    ? Math.min(100, (creditBalance.currentCredits / creditBalance.baseCredits) * 100)
+    : 0;
+
+  const isActive = subscription?.status === 'ACTIVE';
+
   return (
     <div className="balance-page">
       {/* 页面头部 */}
@@ -245,57 +243,106 @@ const Balance: React.FC = () => {
         </div>
       </div>
 
+      {/* 订阅状态 */}
+      <Card className="subscription-card">
+        <Row gutter={24} align="middle">
+          <Col xs={24} md={8}>
+            <Space>
+              <CrownOutlined
+                style={{
+                  fontSize: 32,
+                  color: isActive ? '#faad14' : '#d9d9d9',
+                }}
+              />
+              <div>
+                <Title level={4} style={{ margin: 0 }}>
+                  {isActive ? subscription.package.name : '暂无订阅'}
+                </Title>
+                {isActive && (
+                  <Text type="secondary">
+                    剩余 {subscription.daysRemaining} 天
+                  </Text>
+                )}
+              </div>
+            </Space>
+          </Col>
+          <Col xs={24} md={16}>
+            {creditBalance && (
+              <div className="credit-progress">
+                <div className="progress-header">
+                  <Text>当前积分</Text>
+                  <Text strong>
+                    {creditBalance.currentCredits.toLocaleString()} /{' '}
+                    {creditBalance.baseCredits.toLocaleString()}
+                  </Text>
+                </div>
+                <Progress
+                  percent={creditPercent}
+                  showInfo={false}
+                  strokeColor={{
+                    '0%': '#24be58',
+                    '100%': '#21AF51',
+                  }}
+                  trailColor="#f0f0f0"
+                  strokeWidth={10}
+                />
+                <div className="progress-footer">
+                  <Space split={<span style={{ color: '#d9d9d9' }}>|</span>}>
+                    <span>
+                      <ThunderboltOutlined style={{ color: '#24be58' }} /> 每小时补充：
+                      {creditBalance.replenishCredits.toLocaleString()}
+                    </span>
+                    {creditBalance.nextReplenishAt && (
+                      <span>
+                        <ClockCircleOutlined style={{ color: '#1890ff' }} /> 下次补充：
+                        {dayjs(creditBalance.nextReplenishAt).format('HH:mm')}
+                      </span>
+                    )}
+                  </Space>
+                </div>
+              </div>
+            )}
+          </Col>
+        </Row>
+        {!creditBalance?.hasSubscription && (
+          <Alert
+            message="您当前没有有效订阅，积分不会自动补充。购买订阅后可享受持续的积分补充服务。"
+            type="warning"
+            showIcon
+            style={{ marginTop: 16 }}
+          />
+        )}
+      </Card>
+
       {/* 统计卡片 */}
       <Row gutter={16} className="stats-row">
-        <Col xs={24} sm={12} lg={8}>
+        <Col xs={24} sm={8}>
           <Card>
             <Statistic
-              title="当前余额"
-              value={balance}
+              title="当前积分"
+              value={creditBalance?.currentCredits || 0}
               formatter={(value) => value.toLocaleString()}
-              valueStyle={{ color: '#1890ff', fontSize: 32 }}
+              valueStyle={{ color: '#1890ff', fontSize: 28 }}
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={8}>
+        <Col xs={24} sm={8}>
           <Card>
             <Statistic
-              title="总充值"
-              value={statistics.totalRecharge}
+              title="积分天花板"
+              value={creditBalance?.baseCredits || 0}
               formatter={(value) => value.toLocaleString()}
               valueStyle={{ color: '#52c41a' }}
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={8}>
+        <Col xs={24} sm={8}>
           <Card>
             <Statistic
-              title="总消耗"
-              value={Math.abs(statistics.totalDeduct)}
+              title="每小时补充"
+              value={creditBalance?.replenishCredits || 0}
               formatter={(value) => value.toLocaleString()}
-              valueStyle={{ color: '#ff4d4f' }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      {/* 次要统计 */}
-      <Row gutter={16} className="stats-row secondary">
-        <Col xs={24} sm={12}>
-          <Card>
-            <Statistic
-              title="总赠送"
-              value={statistics.totalBonus}
-              formatter={(value) => value.toLocaleString()}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12}>
-          <Card>
-            <Statistic
-              title="总退款"
-              value={statistics.totalRefund}
-              formatter={(value) => value.toLocaleString()}
+              suffix="/小时"
             />
           </Card>
         </Col>
@@ -311,11 +358,14 @@ const Balance: React.FC = () => {
             value={filters.type}
             onChange={(value) => setFilters({ ...filters, type: value })}
           >
+            <Option value="SUBSCRIPTION">订阅</Option>
+            <Option value="REPLENISH">补充</Option>
+            <Option value="DAILY_RESET">每日重置</Option>
+            <Option value="DEDUCT">扣费</Option>
+            <Option value="ADMIN_ADJUST">调整</Option>
             <Option value="RECHARGE">充值</Option>
             <Option value="BONUS">赠送</Option>
-            <Option value="DEDUCT">扣费</Option>
             <Option value="REFUND">退款</Option>
-            <Option value="ADMIN_ADJUST">调整</Option>
           </Select>
 
           <RangePicker

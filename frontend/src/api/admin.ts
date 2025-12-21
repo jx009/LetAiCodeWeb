@@ -138,6 +138,23 @@ export const validatePaymentConfig = () => {
   return http.get<ApiResponse<{ valid: boolean; message?: string }>>('/options/payment/validate');
 };
 
+// ========== 积分配置 ==========
+
+export interface CreditConfig {
+  usdToCreditsRate: number;  // 美元兑积分汇率（1美元=X积分）
+  freeQuota: number;         // 新用户赠送积分
+}
+
+// 获取积分配置
+export const getCreditConfig = () => {
+  return http.get<ApiResponse<CreditConfig>>('/options/credit/config');
+};
+
+// 更新积分配置
+export const updateCreditConfig = (config: Partial<CreditConfig>) => {
+  return http.put<ApiResponse<any>>('/options/credit/config', config);
+};
+
 // ========== 订单管理 ==========
 
 export interface OrderQueryParams {

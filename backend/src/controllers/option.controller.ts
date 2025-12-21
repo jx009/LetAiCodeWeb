@@ -220,3 +220,49 @@ export const validatePaymentConfig = async (req: Request, res: Response) => {
     });
   }
 };
+
+/**
+ * 获取积分配置
+ * GET /api/options/credit/config
+ */
+export const getCreditConfig = async (req: Request, res: Response) => {
+  try {
+    const config = await optionService.getCreditConfig();
+
+    return res.json({
+      success: true,
+      data: config,
+    });
+  } catch (error: any) {
+    logger.error('Get credit config error:', error);
+    return res.status(500).json({
+      success: false,
+      message: '获取积分配置失败',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * 更新积分配置
+ * PUT /api/options/credit/config
+ */
+export const updateCreditConfig = async (req: Request, res: Response) => {
+  try {
+    const config = req.body;
+
+    await optionService.updateCreditConfig(config);
+
+    return res.json({
+      success: true,
+      message: '积分配置已更新',
+    });
+  } catch (error: any) {
+    logger.error('Update credit config error:', error);
+    return res.status(500).json({
+      success: false,
+      message: '更新积分配置失败',
+      error: error.message,
+    });
+  }
+};

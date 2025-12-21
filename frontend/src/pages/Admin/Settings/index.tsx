@@ -3,6 +3,7 @@ import {
   Card,
   Form,
   Input,
+  InputNumber,
   Button,
   Space,
   message,
@@ -10,6 +11,9 @@ import {
   Tabs,
   Select,
   Alert,
+  Statistic,
+  Row,
+  Col,
 } from 'antd';
 import {
   SettingOutlined,
@@ -18,13 +22,17 @@ import {
   CloseCircleOutlined,
   PlusOutlined,
   DeleteOutlined,
+  DollarOutlined,
+  GiftOutlined,
 } from '@ant-design/icons';
 import {
   getPaymentConfig,
   updatePaymentConfig,
   validatePaymentConfig,
+  getCreditConfig,
+  updateCreditConfig,
 } from '@/api/admin';
-import type { PaymentConfig } from '@/api/admin';
+import type { PaymentConfig, CreditConfig } from '@/api/admin';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -34,8 +42,10 @@ const { Title, Text, Paragraph } = Typography;
 const AdminSettings = () => {
   const [loading, setLoading] = useState(false);
   const [paymentForm] = Form.useForm();
+  const [creditForm] = Form.useForm();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_paymentConfig, setPaymentConfig] = useState<PaymentConfig | null>(null);
+  const [creditConfig, setCreditConfig] = useState<CreditConfig | null>(null);
   const [paymentValid, setPaymentValid] = useState<boolean | null>(null);
   const [payMethods, setPayMethods] = useState<
     Array<{ name: string; type: string; color: string }>
@@ -43,6 +53,7 @@ const AdminSettings = () => {
 
   useEffect(() => {
     loadPaymentConfig();
+    loadCreditConfig();
   }, []);
 
   const loadPaymentConfig = async () => {
@@ -123,6 +134,41 @@ const AdminSettings = () => {
     const newMethods = [...payMethods];
     newMethods[index] = { ...newMethods[index], [field]: value };
     setPayMethods(newMethods);
+  };
+
+  // 加载积分配置
+  const loadCreditConfig = async () => {
+    try {
+      const res = await getCreditConfig();
+      if (res.success && res.data) {
+        setCreditConfig(res.data);
+        creditForm.setFieldsValue({
+          usdToCreditsRate: res.data.usdToCreditsRate,
+          freeQuota: res.data.freeQuota,
+        });
+      }
+    } catch (error: any) {
+      message.error(error.response?.data?.message || '加载积分配置失败');
+    }
+  };
+
+  // 保存积分配置
+  const handleSaveCredit = async () => {
+    try {
+      const values = await creditForm.validateFields();
+      setLoading(true);
+
+      await updateCreditConfig({
+        usdToCreditsRate: values.usdToCreditsRate,
+        freeQuota: values.freeQuota,
+      });
+      message.success('积分配置保存成功');
+      loadCreditConfig();
+    } catch (error: any) {
+      message.error(error.response?.data?.message || '保存失败');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const paymentMethodTypes = [
@@ -304,6 +350,109 @@ const AdminSettings = () => {
               message="安全提示"
               description="商户密钥非常重要，泄露后可能导致资金损失。建议定期更换密钥。"
               type="warning"
+              showIcon
+            />
+          </Card>
+        </Space>
+      ),
+    },
+    {
+      key: 'credit',
+      label: '积分配置',
+      children: (
+        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+          {/* 当前配置概览 */}
+          {creditConfig && (
+            <Row gutter={16}>
+              <Col xs={24} sm={12}>
+                <Card>
+                  <Statistic
+                    title="美元兑积分汇率"
+                    value={creditConfig.usdToCreditsRate}
+                    prefix={<DollarOutlined />}
+                    suffix="积分/美元"
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Card>
+                  <Statistic
+                    title="新用户赠送积分"
+                    value={creditConfig.freeQuota}
+                    prefix={<GiftOutlined />}
+                    suffix="积分"
+                  />
+                </Card>
+              </Col>
+            </Row>
+          )}
+
+          {/* 积分配置表单 */}
+          <Card title="积分换算配置" size="small">
+            <Form form={creditForm} layout="vertical">
+              <Form.Item
+                label="美元兑积分汇率"
+                name="usdToCreditsRate"
+                rules={[{ required: true, message: '请输入汇率' }]}
+                extra="1美元等于多少积分。例如：1000 表示 1美元 = 1000积分"
+              >
+                <InputNumber
+                  style={{ width: '100%' }}
+                  min={1}
+                  max={1000000}
+                  placeholder="1000"
+                  addonAfter="积分/美元"
+                />
+              </Form.Item>
+
+              <Form.Item
+                label="新用户赠送积分"
+                name="freeQuota"
+                rules={[{ required: true, message: '请输入赠送积分数量' }]}
+                extra="新用户注册时自动赠送的积分数量"
+              >
+                <InputNumber
+                  style={{ width: '100%' }}
+                  min={0}
+                  max={10000000}
+                  placeholder="10000"
+                  addonAfter="积分"
+                />
+              </Form.Item>
+            </Form>
+          </Card>
+
+          {/* 操作按钮 */}
+          <Space>
+            <Button
+              type="primary"
+              icon={<SaveOutlined />}
+              onClick={handleSaveCredit}
+              loading={loading}
+            >
+              保存配置
+            </Button>
+            <Button onClick={loadCreditConfig}>重置</Button>
+          </Space>
+
+          {/* 配置说明 */}
+          <Card title="配置说明" size="small" type="inner">
+            <Paragraph>
+              <ul>
+                <li>
+                  <Text strong>美元兑积分汇率</Text>：每次 API 调用时，系统会根据 new-api 返回的美元消耗金额，
+                  按照此汇率换算成积分进行扣除。例如：汇率为 1000，API 调用消耗 $0.001，则扣除 1 积分。
+                </li>
+                <li>
+                  <Text strong>新用户赠送积分</Text>：用户首次注册登录时，系统自动赠送的积分数量。
+                </li>
+              </ul>
+            </Paragraph>
+
+            <Alert
+              message="换算公式"
+              description="积分消耗 = 美元消耗 × 汇率（四舍五入取整）"
+              type="info"
               showIcon
             />
           </Card>

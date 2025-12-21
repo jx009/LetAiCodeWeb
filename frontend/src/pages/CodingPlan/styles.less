@@ -1,6 +1,6 @@
 /**
  * Coding Plan 页面样式
- * 完全复刻 MiniMAXI Coding Plan 页面设计
+ * 订阅套餐选择页面
  */
 
 .coding-plan-page {
@@ -11,7 +11,7 @@
   // 页面标题区域
   .page-header {
     text-align: center;
-    margin-bottom: 56px;
+    margin-bottom: 40px;
 
     .page-title {
       font-size: 40px;
@@ -31,10 +31,118 @@
     }
   }
 
+  // 订阅状态卡片
+  .subscription-status-card {
+    margin-bottom: 40px;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+    .status-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+
+      .status-left {
+        display: flex;
+        align-items: center;
+
+        .crown-icon {
+          font-size: 32px;
+          color: #d9d9d9;
+          margin-right: 12px;
+
+          &.active {
+            color: #faad14;
+          }
+        }
+      }
+    }
+
+    .credit-info {
+      .credit-main {
+        margin-bottom: 16px;
+
+        .credit-current {
+          display: flex;
+          justify-content: space-between;
+          align-items: baseline;
+          margin-bottom: 8px;
+
+          .credit-label {
+            font-size: 14px;
+            color: #8f959e;
+          }
+
+          .credit-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #14151a;
+
+            .credit-max {
+              font-size: 14px;
+              font-weight: 400;
+            }
+          }
+        }
+      }
+
+      .credit-details {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+
+        .detail-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #8f959e;
+
+          .anticon {
+            color: #24be58;
+          }
+        }
+      }
+    }
+  }
+
+  // 周期选择器
+  .cycle-selector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 40px;
+
+    .ant-segmented {
+      padding: 4px;
+      background: #f5f5f5;
+      border-radius: 12px;
+
+      .ant-segmented-item {
+        border-radius: 8px;
+        min-width: 80px;
+
+        &-selected {
+          background: #fff;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+      }
+    }
+
+    .cycle-hint {
+      margin-top: 12px;
+      font-size: 14px;
+      color: #52c41a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+  }
+
   // 套餐卡片网格
   .packages-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 24px;
     margin-bottom: 64px;
 
@@ -43,16 +151,60 @@
     }
   }
 
+  .no-packages {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    background: #fafafa;
+    border-radius: 16px;
+  }
+
   // 套餐卡片
   .package-card {
     border-radius: 16px !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
     transition: all 0.3s ease;
     overflow: hidden;
+    position: relative;
 
     &:hover {
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
       transform: translateY(-4px);
+    }
+
+    &.recommended {
+      border: 2px solid #faad14 !important;
+
+      .recommended-badge {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: linear-gradient(135deg, #faad14 0%, #fa8c16 100%);
+        color: #fff;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+    }
+
+    &.current {
+      border: 2px solid #24be58 !important;
+
+      .current-badge {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        background: #24be58;
+        color: #fff;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+      }
     }
 
     .ant-card-body {
@@ -61,7 +213,7 @@
 
     // 套餐头部
     .package-header {
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       text-align: center;
 
       .package-name {
@@ -107,6 +259,20 @@
       }
     }
 
+    // 省钱标签
+    .savings-tag {
+      text-align: center;
+      margin-bottom: 16px;
+
+      .ant-tag {
+        margin-right: 8px;
+      }
+
+      .monthly-price {
+        font-size: 12px;
+      }
+    }
+
     // 积分数量
     .package-credits {
       text-align: center;
@@ -117,12 +283,18 @@
       .credits-amount {
         font-size: 20px;
         font-weight: 600;
-        color: var(--primary-color);
+        color: var(--primary-color, #24be58);
       }
 
       .credits-unit {
         font-size: 14px;
         color: #8f959e;
+      }
+
+      .credits-note {
+        display: block;
+        font-size: 12px;
+        margin-top: 4px;
       }
     }
 
@@ -141,7 +313,7 @@
         line-height: 1.6;
 
         .feature-icon {
-          color: var(--primary-color);
+          color: var(--primary-color, #24be58);
           font-size: 16px;
           margin-right: 12px;
           margin-top: 2px;
@@ -156,7 +328,7 @@
       border-radius: 12px !important;
       font-size: 16px !important;
       font-weight: 600 !important;
-      background: var(--primary-color) !important;
+      background: var(--primary-color, #24be58) !important;
       border: none !important;
       box-shadow: 0 4px 12px rgba(36, 190, 88, 0.2) !important;
       transition: all 0.3s ease;
@@ -210,11 +382,15 @@
           color: #8f959e;
           line-height: 1.6;
 
+          strong {
+            color: #45515e;
+          }
+
           &::before {
             content: '•';
             position: absolute;
             left: 8px;
-            color: var(--primary-color);
+            color: var(--primary-color, #24be58);
             font-size: 16px;
           }
         }
@@ -237,7 +413,7 @@
     padding: 32px 16px;
 
     .page-header {
-      margin-bottom: 40px;
+      margin-bottom: 32px;
 
       .page-title {
         font-size: 32px;
@@ -245,6 +421,32 @@
 
       .page-subtitle {
         font-size: 14px;
+      }
+    }
+
+    .subscription-status-card {
+      .status-header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+      }
+
+      .credit-details {
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
+
+    .cycle-selector {
+      margin-bottom: 32px;
+
+      .ant-segmented {
+        width: 100%;
+
+        .ant-segmented-item {
+          flex: 1;
+          min-width: auto;
+        }
       }
     }
 

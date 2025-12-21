@@ -13,6 +13,7 @@ import transactionRoutes from './transaction.routes';
 import optionRoutes from './option.routes';
 import adminRoutes from './admin.routes';
 import webhookRoutes from './webhook.routes';
+import subscriptionRoutes from './subscription.routes';
 
 const router = Router();
 
@@ -48,5 +49,8 @@ router.use('/admin', adminRoutes);
 
 // Webhook 路由（来自 new-api 的事件）
 router.use('/webhooks', webhookRoutes);
+
+// 订阅路由
+router.use('/subscription', subscriptionRoutes);
 
 export default router;

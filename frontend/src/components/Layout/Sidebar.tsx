@@ -13,6 +13,7 @@ import {
   SettingOutlined,
   ShoppingOutlined,
   TeamOutlined,
+  GiftOutlined,
 } from '@ant-design/icons';
 import { useUIStore, useAuthStore } from '@/store';
 import { ROUTES, APP_NAME } from '@/utils/constants';
@@ -108,6 +109,12 @@ const Sidebar = () => {
       icon: <ShoppingOutlined />,
       path: '/admin/orders',
     },
+    {
+      key: '/admin/usage',
+      label: '使用记录',
+      icon: <BarChartOutlined />,
+      path: '/admin/usage',
+    },
   ];
 
   // 超级管理员菜单配置
@@ -117,6 +124,12 @@ const Sidebar = () => {
       label: '系统配置',
       icon: <SettingOutlined />,
       path: '/admin/settings',
+    },
+    {
+      key: '/admin/packages',
+      label: '套餐管理',
+      icon: <GiftOutlined />,
+      path: '/admin/packages',
     },
   ];
 

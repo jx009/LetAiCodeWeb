@@ -188,6 +188,56 @@ class OptionService {
 
     return { valid: true };
   }
+
+  /**
+   * 获取积分配置
+   */
+  async getCreditConfig() {
+    return {
+      // 美元兑积分汇率（1美元 = X积分），默认 1000
+      usdToCreditsRate: parseFloat(await this.getOption('UsdToCreditsRate') || '1000'),
+      // 新用户赠送积分
+      freeQuota: parseInt(await this.getOption('FreeQuota') || '10000'),
+    };
+  }
+
+  /**
+   * 更新积分配置
+   */
+  async updateCreditConfig(config: {
+    usdToCreditsRate?: number;
+    freeQuota?: number;
+  }): Promise<void> {
+    const updates: Array<{ key: string; value: string; desc?: string }> = [];
+
+    if (config.usdToCreditsRate !== undefined) {
+      updates.push({
+        key: 'UsdToCreditsRate',
+        value: config.usdToCreditsRate.toString(),
+        desc: '美元兑积分汇率（1美元=X积分）'
+      });
+    }
+    if (config.freeQuota !== undefined) {
+      updates.push({
+        key: 'FreeQuota',
+        value: config.freeQuota.toString(),
+        desc: '新用户赠送积分'
+      });
+    }
+
+    await this.updateOptions(updates);
+  }
+
+  /**
+   * 根据美元金额计算积分消耗
+   * @param usdAmount 美元金额
+   * @returns 积分数量
+   */
+  async calculateCreditsFromUsd(usdAmount: number): Promise<number> {
+    const config = await this.getCreditConfig();
+    // 四舍五入到整数
+    return Math.round(usdAmount * config.usdToCreditsRate);
+  }
 }
 
 export default new OptionService();

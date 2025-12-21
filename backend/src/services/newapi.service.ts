@@ -147,9 +147,16 @@ class NewApiService {
 
       const response = await this.client.get('/api/log/', { params });
 
-      // new-api 可能返回不同的数据结构，需要适配
+      // new-api 返回的是分页格式: { success: true, data: { page, page_size, total, items: [...] } }
       if (response.data.success && response.data.data) {
-        return response.data.data;
+        // 如果是分页格式，取 items 数组
+        if (response.data.data.items && Array.isArray(response.data.data.items)) {
+          return response.data.data.items;
+        }
+        // 兼容直接返回数组的情况
+        if (Array.isArray(response.data.data)) {
+          return response.data.data;
+        }
       }
 
       return [];

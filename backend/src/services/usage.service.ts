@@ -99,6 +99,12 @@ class UsageService {
     // 2. 从 new-api 拉取新记录
     const logs = await newApiService.getTokenUsage(remoteKeyId, startTime);
 
+    // 确保 logs 是数组
+    if (!Array.isArray(logs)) {
+      console.log(`[Usage Sync] Invalid response for key ${keyId}, expected array but got:`, typeof logs);
+      return;
+    }
+
     if (logs.length === 0) {
       console.log(`[Usage Sync] No new records for key ${keyId}`);
       return;

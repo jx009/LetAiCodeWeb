@@ -43,12 +43,14 @@ const Usage: React.FC = () => {
     totalCreditCost: 0,
   });
 
-  // 筛选条件
+  // 筛选条件 - 默认当天
   const [filters, setFilters] = useState<{
     keyId?: string;
     model?: string;
     dateRange?: [Dayjs, Dayjs];
-  }>({});
+  }>({
+    dateRange: [dayjs().startOf('day'), dayjs().endOf('day')],
+  });
 
   /**
    * 加载使用记录

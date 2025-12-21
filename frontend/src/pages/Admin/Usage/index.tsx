@@ -49,12 +49,14 @@ const AdminUsage = () => {
     total: 0,
   });
 
-  // 筛选条件
+  // 筛选条件 - 默认当天
   const [filters, setFilters] = useState<{
     email?: string;
     model?: string;
     dateRange?: [Dayjs, Dayjs];
-  }>({});
+  }>({
+    dateRange: [dayjs().startOf('day'), dayjs().endOf('day')],
+  });
 
   useEffect(() => {
     loadModels();

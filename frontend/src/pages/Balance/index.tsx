@@ -46,11 +46,13 @@ const Balance: React.FC = () => {
   const [creditBalance, setCreditBalance] = useState<CreditBalanceInfo | null>(null);
   const [subscription, setSubscription] = useState<SubscriptionDetail | null>(null);
 
-  // 筛选条件
+  // 筛选条件 - 默认当天
   const [filters, setFilters] = useState<{
     type?: TransactionType;
     dateRange?: [Dayjs, Dayjs];
-  }>({});
+  }>({
+    dateRange: [dayjs().startOf('day'), dayjs().endOf('day')],
+  });
 
   /**
    * 加载数据

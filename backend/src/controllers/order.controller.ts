@@ -143,10 +143,9 @@ class OrderController {
         });
       }
 
-      // 构建回调URL
-      const baseUrl = process.env.API_BASE_URL || `http://localhost:${process.env.PORT || 4000}`;
-      const callbackUrl = `${baseUrl}/api/payment/epay/callback`;
-      const returnUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/orders`;
+      // 构建回调URL - 使用固定域名
+      const callbackUrl = 'https://letaicode.cn/api/payment/epay/callback';
+      const returnUrl = 'https://letaicode.cn/orders';
 
       const result = await orderService.requestEpayPayment(
         orderNo,

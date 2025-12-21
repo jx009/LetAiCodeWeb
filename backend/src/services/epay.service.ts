@@ -88,10 +88,11 @@ class EpayService {
 
     // 2. 按 key 排序并拼接
     const sortedKeys = Object.keys(filteredParams).sort();
-    const signStr = sortedKeys.map((k) => `${k}=${filteredParams[k]}`).join('&') + `&key=${key}`;
+    // 易支付签名格式: md5(a=b&c=d&e=f + 密钥)，直接拼接密钥，不加 &key=
+    const signStr = sortedKeys.map((k) => `${k}=${filteredParams[k]}`).join('&') + key;
 
-    // 3. MD5 加密
-    return crypto.createHash('md5').update(signStr).digest('hex');
+    // 3. MD5 加密（小写）
+    return crypto.createHash('md5').update(signStr, 'utf8').digest('hex');
   }
 
   /**

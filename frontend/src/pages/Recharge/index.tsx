@@ -9,7 +9,6 @@ import {
   Spin,
   Typography,
   Space,
-  Tag,
 } from 'antd';
 import { WalletOutlined, AlipayCircleOutlined, WechatOutlined } from '@ant-design/icons';
 import { getPackagePlans, createOrder, requestPayment, getPaymentInfo } from '@/api/recharge';
